@@ -1,0 +1,53 @@
+{
+	"meta": {
+		"title": "Test Document"
+	},
+
+	"template": {
+		"_comment": "used only to direct newly created elements (or rebuild e.g. index)",
+		"page": {
+		},
+		"toc": true,
+		"tocFormat": "default",
+		"index": true,
+		"indexFormat": "default"
+	},
+
+	"maps": {
+		"_comment": "kinda like shortcuts to common/complex items, like images and fonts",
+		"fonts": {
+			"main": {
+				"src": "https://fonts.googleapis.com/css?family=Tangerine"
+			}
+		},
+		"images": {
+			"main-logo": {
+				"src": "https://example.com/logo.jpg",
+				"size": [400, 300]
+			}
+		}
+	},
+
+	"document": {
+		"_comment": "what will actually be turned into pdf pages",
+
+		"layout": {
+			"paperSize": [100, 200],
+			"up": "2x2",
+			"duplex": "long"
+		},
+
+		"pages": [
+
+			{
+				"size": [100, 200],
+				"elements": [
+					{
+						"_comment": "the real work - what gets translated into ps - see: elements.json"
+					}
+				]
+			}
+		]
+	}
+}
+	
