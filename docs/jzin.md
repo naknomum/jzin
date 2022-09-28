@@ -1,4 +1,5 @@
-:warning: DRAFT!
+:warning: THIS IS A VERY EARLY DRAFT
+
 
 # jzin format
 
