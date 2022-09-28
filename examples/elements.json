@@ -2,8 +2,8 @@
 	{
 		"elementType": "text",
 		"position": [10, 20],
-		"_comment": "@ prefix means lookup in maps:",
-		"font": "@main",
+		"_comment": "font is looked up in maps:",
+		"font": "main",
 		"fontSize": 20,
 		"align": "left",
 		"underline": [1, 1],
@@ -27,7 +27,8 @@
 
 	{
 		"elementType": "image",
-		"src": "@main-logo",
+		"_comment": "image is looked up in maps:",
+		"image": "main-logo",
 		"position": [10, 40],
 		"size": [200, 150]
 	},

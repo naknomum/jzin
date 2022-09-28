@@ -1,0 +1,71 @@
+{
+	"meta": {
+		"title": "Test Document"
+	},
+
+	"template": {
+		"_comment": "used only to direct newly created elements (or rebuild e.g. index)",
+		"page": {
+		},
+		"toc": true,
+		"tocFormat": "default",
+		"index": true,
+		"indexFormat": "default"
+	},
+
+	"maps": {
+		"_comment": "kinda like shortcuts to common/complex items, like images and fonts",
+		"fonts": {
+			"main": {
+				"src": "src/Tangerine-Regular.ttf",
+				"_about": "https://fonts.google.com/specimen/Tangerine",
+				"_comment": "https://fonts.google.com/download?family=Tangerine"
+			}
+		},
+		"images": {
+			"main-logo": {
+				"src": "src/jzin.png",
+				"size": [512, 185]
+			}
+		}
+	},
+
+	"document": {
+		"_comment": "what will actually be turned into pdf pages",
+
+		"layout": {
+			"paperSize": [100, 200],
+			"up": "2x2",
+			"duplex": "long"
+		},
+
+		"pages": [
+
+			{
+				"size": [0, 0, 396, 612],
+				"elements": [
+
+					{
+						"elementType": "text",
+						"position": [36, 36],
+						"font": "main",
+						"fontSize": 30,
+						"_align": "left",
+						"text": "Hello world."
+					},
+
+
+					{
+						"elementType": "image",
+						"image": "main-logo",
+						"position": [36, 120],
+						"width": 128,
+						"height": 46.25
+					}
+
+				]
+			}
+		]
+	}
+}
+
