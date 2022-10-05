@@ -1,0 +1,35 @@
+{
+	"meta": {
+		"title": "Simple One-Page"
+	},
+
+	"document": {
+
+		"pages": [
+
+			{
+				"size": [0, 0, 360, 360],
+				"elements": [
+
+					{
+						"elementType": "image",
+						"field": "image",
+						"position": [30, 30],
+						"width": 300,
+						"height": 300
+					},
+
+					{
+						"elementType": "text",
+						"position": [30, 300],
+						"fontSize": 30,
+						"_align": "left",
+						"field": "title"
+					}
+
+				]
+			}
+		]
+	}
+}
+

@@ -1,0 +1,19 @@
+[
+	{
+		"name": "Tangerine",
+		"regular": {
+			"font-face": {
+				"src": "fonts/Tangerine-Regular.woff2",
+				"font-weight": 400
+			},
+			"pdf": "Tangerine-Regular.ttf"
+		},
+		"bold": {
+			"font-face": {
+				"src": "fonts/Tangerine-Bold.woff2",
+				"font-weight": 700
+			},
+			"pdf": "Tangerine-Bold.ttf"
+		}
+	}
+]
