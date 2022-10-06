@@ -112,15 +112,37 @@ class jzinDesigner {
             tsel.appendChild(topt);
         }
         this.uiEl.appendChild(tsel);
-        //tsel.addEventListener('change', function(ev) { console.log('????? %o %o', ev, this); });
         let me = this;
         tsel.addEventListener('change', function(ev) { me.chooseTemplate(parseInt(ev.target.value)) });
         this.uiEl.style.display = null;
         this.chooseTemplate(0);
     }
 
-    chooseTemplate(i) {
-        console.log('>>>> switch to template %o', i);
+    chooseTemplate(tnum) {
+        console.log('>>>> switch to template %o', tnum);
+        let doc = {'document': {'pages': []}};
+        for (let i = 0 ; i < jzinDesigner.templates[tnum].document.pages.length ; i++) {
+            let pg = JSON.parse(JSON.stringify(jzinDesigner.templates[tnum].document.pages[i]));
+            for (let j = 0 ; j < pg.elements.length ; j++) {
+                let field = pg.elements[j].field;
+                delete pg.elements[j].field;
+                pg.elements[j] = this.generateElement(pg.elements[j], field, this.feed.feed[0]);
+            }
+            doc.document.pages.push(pg);
+        }
+        this.doc = doc;
+        this.displayPage(0);
+    }
+
+    generateElement(elTemplate, fieldName, data) {
+        let el = JSON.parse(JSON.stringify(elTemplate));
+        el[elTemplate.elementType] = data[fieldName];
+        //console.info('>>>> A(%o) B(%o) C(%o)', elTemplate, fieldName, data);
+        return el;
+    }
+
+    displayPage(pnum) {
+        console.log('DISPLAYING PAGE %d: %o', pnum, this.doc.document.pages[pnum]);
     }
 
     static uuidv4() {  // h/t https://stackoverflow.com/a/2117523

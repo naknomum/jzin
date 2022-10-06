@@ -1,6 +1,7 @@
 [
 	{
 		"elementType": "text",
+		"text": "Hello world.",
 		"position": [10, 20],
 		"_comment": "font is looked up in maps:",
 		"font": "main",
