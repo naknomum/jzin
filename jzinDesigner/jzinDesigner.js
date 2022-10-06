@@ -1,14 +1,16 @@
 
 class jzinDesigner {
 
-    static fonts = {};
+    static fonts = null;
 
     static numTemplates = 2;
     static templates = [];
 
-    constructor(el, assetsDataUrl) {
+    constructor(el, dataDirUrl) {
         this.el = el;
-        this.assetsDataUrl = assetsDataUrl;
+        this.dataDirUrl = dataDirUrl;
+        this.feed = null;
+        this.doc = null;
         this.init();
         return this;
     }
@@ -16,6 +18,8 @@ class jzinDesigner {
     init() {
         this.initTemplates();
         this.initFonts();
+        this.initFeed();
+        this.initDoc();
     }
 
     initTemplates() {
@@ -30,16 +34,56 @@ class jzinDesigner {
     initFonts() {
         fetch('fonts/data.json')
             .then((resp) => resp.json())
-            .then((data) => this.initFont(data));
+            .then((data) => this.gotFonts(data));
     }
 
-    initFont(fdata) {
+    initFeed() {
+        fetch(this.dataDirUrl + '/feed.json')
+            .then((resp) => resp.json())
+            .then((data) => this.gotFeed(data));
+    }
+
+    gotFeed(data) {
+        console.log('FEED DATA: %o', data);
+        this.feed = data;
+        this.initTemplateUI();
+    }
+
+    initDoc() {
+        fetch(this.dataDirUrl + '/doc.json')
+            .then((resp) => resp.json())
+            .then((data) => this.gotDoc(data))
+            .catch((error) => { this.doc = {}; console.warn('reading doc: %s', error) });
+    }
+
+    gotDoc(data) {
+        console.log('DOC DATA: %o', data);
+        this.doc = data;
+        this.initTemplateUI();
+    }
+
+    gotFonts(fdata) {
         console.log('FONT DATA: %o', fdata);
+        jzinDesigner.fonts = fdata;
+        this.initTemplateUI();
     }
 
     gotTemplate(i, tdata) {
         console.debug('template %d: %s', i, tdata.meta.title);
         jzinDesigner.templates[i] = tdata;
+        this.initTemplateUI();
+    }
+
+    initTemplateUI() {
+        if (jzinDesigner.templates.length < jzinDesigner.numTemplates) return;
+        for (let i = 0 ; i < jzinDesigner.templates.length ; i++) {
+            if (!jzinDesigner.templates[i]) return;
+        }
+        if (!jzinDesigner.fonts) return;
+        if (!this.feed) return;
+        if (!this.doc) return;
+        console.log('READY!!!');
+        // TODO deal with this.doc vs this.feed
     }
 
     static uuidv4() {  // h/t https://stackoverflow.com/a/2117523

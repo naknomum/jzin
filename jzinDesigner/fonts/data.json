@@ -15,5 +15,38 @@
 			},
 			"pdf": "Tangerine-Bold.ttf"
 		}
+	},
+
+	{
+		"name": "Helvetica",
+		"regular": {
+			"font-face": {
+				"src": "arial, sans"
+			},
+			"pdf": "Helvetica"
+		},
+		"bold": {
+			"font-face": {
+				"src": "arial, sans",
+				"font-weight": "bold"
+			},
+			"pdf": "Helvetica-Bold"
+		},
+		"oblique": {
+			"font-face": {
+				"src": "arial, sans",
+				"font-style": "oblique"
+			},
+			"pdf": "Helvetica-Oblique"
+		},
+		"bold-oblique": {
+			"font-face": {
+				"src": "arial, sans",
+				"font-weight": "bold",
+				"font-style": "oblique"
+			},
+			"pdf": "Helvetica-BoldOblique"
+		}
 	}
+
 ]
