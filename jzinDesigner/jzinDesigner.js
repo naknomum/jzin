@@ -16,6 +16,17 @@ class jzinDesigner {
     }
 
     init() {
+        if (!this.el.style.position) this.el.style.position = 'relative';
+        this.uiEl = document.createElement('div');
+        this.uiEl.style.position = 'absolute';
+        this.uiEl.style.width = '200px';
+        this.uiEl.style.height = '99%';
+        this.uiEl.style.backgroundColor = 'rgba(240,240,240,0.8)';
+        this.uiEl.style.display = 'none';
+        this.uiEl.style.padding = '3px';
+        this.uiEl.setAttribute('class', 'jzd-ui');
+        this.el.appendChild(this.uiEl);
+
         this.initTemplates();
         this.initFonts();
         this.initFeed();
@@ -46,7 +57,7 @@ class jzinDesigner {
     gotFeed(data) {
         console.log('FEED DATA: %o', data);
         this.feed = data;
-        this.initTemplateUI();
+        this.initUI();
     }
 
     initDoc() {
@@ -59,22 +70,22 @@ class jzinDesigner {
     gotDoc(data) {
         console.log('DOC DATA: %o', data);
         this.doc = data;
-        this.initTemplateUI();
+        this.initUI();
     }
 
     gotFonts(fdata) {
         console.log('FONT DATA: %o', fdata);
         jzinDesigner.fonts = fdata;
-        this.initTemplateUI();
+        this.initUI();
     }
 
     gotTemplate(i, tdata) {
         console.debug('template %d: %s', i, tdata.meta.title);
         jzinDesigner.templates[i] = tdata;
-        this.initTemplateUI();
+        this.initUI();
     }
 
-    initTemplateUI() {
+    initUI() {
         if (jzinDesigner.templates.length < jzinDesigner.numTemplates) return;
         for (let i = 0 ; i < jzinDesigner.templates.length ; i++) {
             if (!jzinDesigner.templates[i]) return;
@@ -82,8 +93,34 @@ class jzinDesigner {
         if (!jzinDesigner.fonts) return;
         if (!this.feed) return;
         if (!this.doc) return;
-        console.log('READY!!!');
-        // TODO deal with this.doc vs this.feed
+
+        // have everything we need
+        if (this.doc.pages) {
+            this.initDocUI();
+        } else {
+            this.initTemplateUI();
+        }
+    }
+
+    initTemplateUI() {
+        this.uiEl.innerHTML = '<b>TEMPLATES</b>';
+        let tsel = document.createElement('select');
+        for (let i = 0 ; i < jzinDesigner.templates.length ; i++) {
+            let topt = document.createElement('option');
+            topt.setAttribute('value', i);
+            topt.innerHTML = jzinDesigner.templates[i].meta.title;
+            tsel.appendChild(topt);
+        }
+        this.uiEl.appendChild(tsel);
+        //tsel.addEventListener('change', function(ev) { console.log('????? %o %o', ev, this); });
+        let me = this;
+        tsel.addEventListener('change', function(ev) { me.chooseTemplate(parseInt(ev.target.value)) });
+        this.uiEl.style.display = null;
+        this.chooseTemplate(0);
+    }
+
+    chooseTemplate(i) {
+        console.log('>>>> switch to template %o', i);
     }
 
     static uuidv4() {  // h/t https://stackoverflow.com/a/2117523
