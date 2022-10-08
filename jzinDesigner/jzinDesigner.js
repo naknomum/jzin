@@ -37,7 +37,7 @@ class jzinDesigner {
         this.uiEl.style.padding = '3px';
         this.uiEl.setAttribute('class', 'jzd-ui');
         this.el.appendChild(this.uiEl);
-        new Draggy(this.uiEl);
+        new Draggy(this.uiEl, false, true);
 
         this.previewWrapper = document.createElement('div');
         this.previewWrapper.setAttribute('class', 'jzd-page-preview-wrapper');
@@ -141,11 +141,19 @@ class jzinDesigner {
         let templateFeed = [
 		{
 			"image": "templates/image-placeholder.png",
-			"author": "{author}",
-			"title": "{title}",
-			"caption": "{caption}",
-			"time": "1999-12-31T00:01:02+00:00",
-			"hashtags": [ "hashtag", "tag", "jzin" ]
+			"author": "{author0}",
+			"title": "{title0}",
+			"caption": "{The caption for Item 0}",
+			"time": "1999-12-31T00:00:00+00:00",
+			"hashtags": [ "hashtag", "tag", "jzin", "item0" ]
+		},
+		{
+			"image": "templates/image-placeholder.png",
+			"author": "{author1}",
+			"title": "{title1}",
+			"caption": "{The caption for Item 1}",
+			"time": "1999-12-31T01:01:01+00:00",
+			"hashtags": [ "hashtag", "tag", "jzin", "item1" ]
 		}
         ];
         let templateDoc = this.docFromTemplate(jzinDesigner.templates[tnum], templateFeed);
@@ -153,7 +161,6 @@ class jzinDesigner {
         this.displayPage(0, this.pageBackdrop, templateDoc, true);
 
         let previewDoc = this.docFromTemplate(jzinDesigner.templates[tnum], this.feed.feed);
-        console.log('XXXXXXXXXXXXX %o', previewDoc);
         this.previewPages(previewDoc);
     }
 
@@ -226,8 +233,9 @@ class jzinDesigner {
 
         for (let i = 0 ; i < doc.document.pages[pnum].elements.length ; i++) {
             let added = this.addElement(containerEl, doc.document.pages[pnum].elements[i], i);
-            if (editable && added) {
-                new Draggy(added);
+            if (added) {
+                if (editable && added) new Draggy(added);
+                added.title = 'p' + pnum + ' el' + i + ' ' + added.title;
             }
         }
     }
@@ -258,6 +266,7 @@ class jzinDesigner {
             return;
         }
         el.style.zIndex = depth;
+        el.title = elData.elementType + ' [depth ' + depth + ']';
         return el;
     }
 
