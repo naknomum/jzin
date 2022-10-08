@@ -3,7 +3,7 @@ class jzinDesigner {
 
     static fonts = null;
 
-    static numTemplates = 2;
+    static numTemplates = 3;
     static templates = [];
 
     static resizeTimer = null;
@@ -29,13 +29,19 @@ class jzinDesigner {
         if (!this.el.style.position) this.el.style.position = 'relative';
         this.uiEl = document.createElement('div');
         this.uiEl.style.position = 'absolute';
-        this.uiEl.style.width = '200px';
-        this.uiEl.style.height = '99%';
+        this.uiEl.style.width = '300px';
+        this.uiEl.style.height = '400px';
+        this.uiEl.style.top = '10px';
+        this.uiEl.style.right = '10px';
         this.uiEl.style.backgroundColor = 'rgba(240,240,240,0.6)';
-        this.uiEl.style.display = 'none';
         this.uiEl.style.padding = '3px';
         this.uiEl.setAttribute('class', 'jzd-ui');
         this.el.appendChild(this.uiEl);
+        new Draggy(this.uiEl);
+
+        this.previewWrapper = document.createElement('div');
+        this.previewWrapper.setAttribute('class', 'jzd-page-preview-wrapper');
+        this.el.appendChild(this.previewWrapper);
 
         this.initTemplates();
         this.initFonts();
@@ -113,7 +119,7 @@ class jzinDesigner {
     }
 
     initTemplateUI() {
-        this.uiEl.innerHTML = '<b style="display: block; height: 23px;"><span style="cursor: pointer;" class="jzd-option-toggle">&#x25BC;</span> OPTIONS</b>';
+        this.uiEl.innerHTML = '';
         let tsel = document.createElement('select');
         for (let i = 0 ; i < jzinDesigner.templates.length ; i++) {
             let topt = document.createElement('option');
@@ -124,26 +130,15 @@ class jzinDesigner {
         this.uiEl.appendChild(tsel);
         let me = this;
         tsel.addEventListener('change', function(ev) { me.chooseTemplate(parseInt(ev.target.value)) });
-        this.uiEl.getElementsByClassName('jzd-option-toggle')[0].addEventListener('click', function(ev) { me.toggleOption() });
         this.uiEl.style.zIndex = 1000;
         this.uiEl.style.overflow = 'hidden';
-        this.uiEl.style.display = null;
         this.chooseTemplate(0);
     }
 
-    toggleOption() {
-        if (this.uiEl.clientHeight > 100) {
-            this.uiEl.style.height = 20;
-            this.uiEl.getElementsByClassName('jzd-option-toggle')[0].innerHTML = '&#x25BA;';
-        } else {
-            this.uiEl.style.height = '100%';
-            this.uiEl.getElementsByClassName('jzd-option-toggle')[0].innerHTML = '&#x25BC;';
-        }
-    }
 
     chooseTemplate(tnum) {
         console.log('>>>> switch to template %o', tnum);
-        let feed = [
+        let templateFeed = [
 		{
 			"image": "templates/image-placeholder.png",
 			"author": "{author}",
@@ -153,29 +148,55 @@ class jzinDesigner {
 			"hashtags": [ "hashtag", "tag", "jzin" ]
 		}
         ];
-        let doc = this.docFromTemplate(jzinDesigner.templates[tnum], feed);
+        let templateDoc = this.docFromTemplate(jzinDesigner.templates[tnum], templateFeed);
         this.resetPageBackdrop();
-        this.displayPage(0, this.pageBackdrop, doc);
+        this.displayPage(0, this.pageBackdrop, templateDoc, true);
+
+        let previewDoc = this.docFromTemplate(jzinDesigner.templates[tnum], this.feed.feed);
+        console.log('XXXXXXXXXXXXX %o', previewDoc);
+        this.previewPages(previewDoc);
+    }
+
+    previewPages(doc) {
+        this.previewWrapper.innerHTML = '';
+        for (let i = 0 ; i < doc.document.pages.length ; i++) {
+            let el = document.createElement('div');
+            el.setAttribute('class', 'jzd-page-preview');
+            el.title = 'P.' + i;
+            this.previewWrapper.appendChild(el);
+            el.style.height = el.clientWidth + 'px';
+            this.displayPage(i, el, doc);
+        }
     }
 
     docFromTemplate(tempDoc, feed) {
+        console.warn('----------------- %o %o', tempDoc, feed);
         let doc = jzinDesigner.cloneObject(tempDoc);
+        doc.document.pages = [];
         let feedOffset = 0;
         while (feedOffset < feed.length) {
-            let itemsPerPage = 1;
-            for (let pgNum = 0 ; pgNum < doc.document.pages.length ; pgNum++) {
-                for (let i = 0 ; i < doc.document.pages[pgNum].elements.length ; i++) {
-                    let field = doc.document.pages[pgNum].elements[i].field;
-                    let elType = doc.document.pages[pgNum].elements[i]['elementType'];
-                    let offset = doc.document.pages[pgNum].elements[i].itemOffset || 0;
-                    if (offset > itemsPerPage) itemsPerPage = offset;
-                    delete doc.document.pages[pgNum].elements[i].field;
-                    doc.document.pages[pgNum].elements[i][elType] = feed[feedOffset + offset][field] || null;
-                    //console.log('>>>>FEED %s[%d] %o ???', field, feedOffset + offset, feed[feedOffset + offset]);
-                    //console.log('>>>>>>>> %o ???', doc.document.pages[pgNum].elements[i]);
+            let itemsPerPage = 0;
+            for (let pgNum = 0 ; pgNum < tempDoc.document.pages.length ; pgNum++) {
+                let newPage = jzinDesigner.cloneObject(tempDoc.document.pages[pgNum]);
+                for (let i = 0 ; i < newPage.elements.length ; i++) {
+                    let field = newPage.elements[i].field;
+                    let elType = newPage.elements[i]['elementType'];
+                    let itemOffset = newPage.elements[i].itemOffset || 0;
+                    if (itemOffset > itemsPerPage) itemsPerPage = itemOffset;
+                    delete newPage.elements[i].field;
+                    let offset = feedOffset + itemOffset;
+                    console.log('>>>>>> FEED[%d][%s] %o ???', offset, field, feed[offset]);
+                    if (!feed[offset]) {  // means we are past end of feed for this page
+                        newPage.elements[i].hidden = true;
+                        continue;
+                    }
+                    newPage.elements[i][elType] = feed[offset][field] || null;
+                    console.log('       PAGE[%d] els: %o ???', doc.document.pages.length, newPage.elements);
                 }
+                doc.document.pages.push(newPage);
             }
-            feedOffset += itemsPerPage;
+            console.log('######## %d', itemsPerPage);
+            feedOffset += itemsPerPage + 1;
         }
         return doc;
     }
@@ -195,7 +216,7 @@ class jzinDesigner {
         return el;
     }
 
-    displayPage(pnum, containerEl, doc) {
+    displayPage(pnum, containerEl, doc, editable) {
         if (!doc) doc = this.doc;
         console.log('DISPLAYING PAGE %d on %o: %o', pnum, containerEl, doc.document.pages[pnum]);
 
@@ -204,7 +225,10 @@ class jzinDesigner {
         this.setScale(containerEl, pgw, pgh);
 
         for (let i = 0 ; i < doc.document.pages[pnum].elements.length ; i++) {
-            this.addElement(containerEl, doc.document.pages[pnum].elements[i], i);
+            let added = this.addElement(containerEl, doc.document.pages[pnum].elements[i], i);
+            if (editable && added) {
+                new Draggy(added);
+            }
         }
     }
 
@@ -223,6 +247,7 @@ class jzinDesigner {
     }
 
     addElement(containerEl, elData, depth) {
+        if (elData.hidden) return;
         let el = null;
         if (elData.elementType == 'image') {
             el = this.addImageElement(containerEl, elData);
@@ -232,7 +257,6 @@ class jzinDesigner {
             console.warn('unknown elementType=%s in %o', elData.elementType, elData);
             return;
         }
-        new Draggy(el);
         el.style.zIndex = depth;
         return el;
     }

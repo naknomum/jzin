@@ -1,0 +1,58 @@
+{
+	"meta": {
+		"title": "2-Up per Page"
+	},
+
+	"document": {
+
+		"pages": [
+
+			{
+				"size": [0, 0, 360, 360],
+				"elements": [
+
+					{
+						"elementType": "image",
+						"field": "image",
+						"itemOffset": 0,
+						"position": [30, 30],
+						"width": 150,
+						"height": 150
+					},
+
+					{
+						"elementType": "text",
+						"position": [30, 200],
+						"width": 150,
+						"fontSize": 30,
+						"_align": "left",
+						"itemOffset": 0,
+						"field": "title"
+					},
+
+
+					{
+						"elementType": "image",
+						"field": "image",
+						"itemOffset": 1,
+						"position": [200, 30],
+						"width": 150,
+						"height": 150
+					},
+
+					{
+						"elementType": "text",
+						"position": [200, 200],
+						"width": 150,
+						"fontSize": 30,
+						"_align": "left",
+						"itemOffset": 1,
+						"field": "title"
+					}
+
+				]
+			}
+		]
+	}
+}
+
