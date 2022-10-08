@@ -15,7 +15,7 @@ class jzinDesigner {
         this.feed = null;
         this.doc = null;
         this.currentPage = -1;
-        this.pageScale = 1;
+        //this.pageScale = 1;
         this.init();
         return this;
     }
@@ -24,9 +24,7 @@ class jzinDesigner {
         let me = this;
         window.addEventListener('resize', function(ev) {
             clearTimeout(jzinDesigner.resizeTimer);
-            jzinDesigner.resizeTimer = setTimeout(function() {
-                if (me.currentPage > -1) me.displayPage(me.currentPage);
-            }, 300);
+            jzinDesigner.resizeTimer = setTimeout(function() { me.windowResized(ev); }, 600);
         });
         if (!this.el.style.position) this.el.style.position = 'relative';
         this.uiEl = document.createElement('div');
@@ -145,88 +143,162 @@ class jzinDesigner {
 
     chooseTemplate(tnum) {
         console.log('>>>> switch to template %o', tnum);
-        let doc = {'document': {'pages': []}};
-        for (let i = 0 ; i < jzinDesigner.templates[tnum].document.pages.length ; i++) {
-            let pg = JSON.parse(JSON.stringify(jzinDesigner.templates[tnum].document.pages[i]));
-            for (let j = 0 ; j < pg.elements.length ; j++) {
-                let field = pg.elements[j].field;
-                delete pg.elements[j].field;
-                pg.elements[j] = this.generateElement(pg.elements[j], field, this.feed.feed[0]);
+        let feed = [
+		{
+			"image": "templates/image-placeholder.png",
+			"author": "{author}",
+			"title": "{title}",
+			"caption": "{caption}",
+			"time": "1999-12-31T00:01:02+00:00",
+			"hashtags": [ "hashtag", "tag", "jzin" ]
+		}
+        ];
+        let doc = this.docFromTemplate(jzinDesigner.templates[tnum], feed);
+        this.resetPageBackdrop();
+        this.displayPage(0, this.pageBackdrop, doc);
+    }
+
+    docFromTemplate(tempDoc, feed) {
+        let doc = jzinDesigner.cloneObject(tempDoc);
+        let feedOffset = 0;
+        while (feedOffset < feed.length) {
+            let itemsPerPage = 1;
+            for (let pgNum = 0 ; pgNum < doc.document.pages.length ; pgNum++) {
+                for (let i = 0 ; i < doc.document.pages[pgNum].elements.length ; i++) {
+                    let field = doc.document.pages[pgNum].elements[i].field;
+                    let elType = doc.document.pages[pgNum].elements[i]['elementType'];
+                    let offset = doc.document.pages[pgNum].elements[i].itemOffset || 0;
+                    if (offset > itemsPerPage) itemsPerPage = offset;
+                    delete doc.document.pages[pgNum].elements[i].field;
+                    doc.document.pages[pgNum].elements[i][elType] = feed[feedOffset + offset][field] || null;
+                    //console.log('>>>>FEED %s[%d] %o ???', field, feedOffset + offset, feed[feedOffset + offset]);
+                    //console.log('>>>>>>>> %o ???', doc.document.pages[pgNum].elements[i]);
+                }
             }
-            doc.document.pages.push(pg);
+            feedOffset += itemsPerPage;
         }
-        this.doc = doc;
-        this.displayPage(0);
+        return doc;
+    }
+
+    resetPageBackdrop() {
+        if (this.pageBackdrop) this.pageBackdrop.remove();
+        this.pageBackdrop = document.createElement('div');
+        this.pageBackdrop.setAttribute('class', 'jzd-page-backdrop');
+        this.el.appendChild(this.pageBackdrop);
+        return this.pageBackdrop;
     }
 
     generateElement(elTemplate, fieldName, data) {
-        let el = JSON.parse(JSON.stringify(elTemplate));
+        let el = jzinDesigner.cloneObject(elTemplate);
         el[elTemplate.elementType] = data[fieldName];
         //console.info('>>>> A(%o) B(%o) C(%o)', elTemplate, fieldName, data);
         return el;
     }
 
-    displayPage(pnum) {
-        this.currentPage = pnum;
-        console.log('DISPLAYING PAGE %d: %o', pnum, this.doc.document.pages[pnum]);
-        if (this.pageBackdrop) this.pageBackdrop.remove();
-        this.pageBackdrop = document.createElement('div');
-        this.pageBackdrop.setAttribute('class', 'jzd-page-backdrop');
-        this.el.appendChild(this.pageBackdrop);
-        let pgw = this.doc.document.pages[pnum].size[3] - this.doc.document.pages[pnum].size[1];
-        let pgh = this.doc.document.pages[pnum].size[2] - this.doc.document.pages[pnum].size[0];
-        let rh = this.pageBackdrop.clientHeight / pgh;
-        let rw = this.pageBackdrop.clientWidth / pgw;
-        this.pageScale = Math.min(rh, rw);
-        this.pageBackdrop.style.width = pgw * this.pageScale;
-        this.pageBackdrop.style.height = pgh * this.pageScale;
+    displayPage(pnum, containerEl, doc) {
+        if (!doc) doc = this.doc;
+        console.log('DISPLAYING PAGE %d on %o: %o', pnum, containerEl, doc.document.pages[pnum]);
 
-        for (let i = 0 ; i < this.doc.document.pages[pnum].elements.length ; i++) {
-            this.addElement(this.doc.document.pages[pnum].elements[i], i);
+        let pgw = doc.document.pages[pnum].size[3] - doc.document.pages[pnum].size[1];
+        let pgh = doc.document.pages[pnum].size[2] - doc.document.pages[pnum].size[0];
+        this.setScale(containerEl, pgw, pgh);
+
+        for (let i = 0 ; i < doc.document.pages[pnum].elements.length ; i++) {
+            this.addElement(containerEl, doc.document.pages[pnum].elements[i], i);
         }
     }
 
-    addElement(elData, depth) {
+    setScale(el, w, h) {
+        let pgw = w || el.dataset.pageWidth || 0;
+        let pgh = h || el.dataset.pageHeight || 0;
+        let rh = el.clientHeight / pgh;
+        let rw = el.clientWidth / pgw;
+        let scale = Math.min(rh, rw);
+        el.style.width = pgw * scale;
+        el.style.height = pgh * scale;
+        el.dataset.scale = scale;
+        el.dataset.pageWidth = pgw;
+        el.dataset.pageHeight = pgh;
+        return scale;
+    }
+
+    addElement(containerEl, elData, depth) {
         let el = null;
         if (elData.elementType == 'image') {
-            el = this.addImageElement(elData);
+            el = this.addImageElement(containerEl, elData);
         } else if (elData.elementType == 'text') {
-            el = this.addTextElement(elData);
+            el = this.addTextElement(containerEl, elData);
         } else {
             console.warn('unknown elementType=%s in %o', elData.elementType, elData);
             return;
         }
+        new Draggy(el);
         el.style.zIndex = depth;
+        return el;
     }
 
-    elementContainer(elData) {
+    elementContainerSetSize(el, parentEl) {
+        if (!parentEl) parentEl = el.parentElement;
+        let scale = parentEl.dataset.scale || 1;
+        el.style.left = scale * el.dataset.positionX;
+        el.style.top = scale * el.dataset.positionY;
+        el.style.width = scale * el.dataset.width;
+        el.style.height = scale * el.dataset.height;
+    }
+
+    elementContainer(containerEl, elData) {
         let el = document.createElement('div');
         el.setAttribute('class', 'jzd-element-container');
-        el.style.left = elData.position[0] * this.pageScale;
-        el.style.top = elData.position[1] * this.pageScale;
-        el.style.width = elData.width * this.pageScale;
-        el.style.height = elData.height * this.pageScale;
+        el.dataset.positionX = elData.position[0];
+        el.dataset.positionY = elData.position[1];
+        el.dataset.width = elData.width;
+        el.dataset.height = elData.height;
+        this.elementContainerSetSize(el, containerEl);
         return el;
     }
 
-    addImageElement(elData) {
-        let el = this.elementContainer(elData);
+    addImageElement(containerEl, elData) {
+        let el = this.elementContainer(containerEl, elData);
         let img = document.createElement('img');
         img.setAttribute('class', 'jzd-image');
-        img.src = this.dataDirUrl + '/' + elData.image;
+        let src = elData.image;
+        if (src.indexOf('/') < 0) src = this.dataDirUrl + '/' + src;
+        img.src = src;
         el.appendChild(img);
-        this.pageBackdrop.appendChild(el);
+        containerEl.appendChild(el);
         return el;
     }
 
-    addTextElement(elData) {
-        let el = this.elementContainer(elData);
+    addTextElement(containerEl, elData) {
+        let el = this.elementContainer(containerEl, elData);
+        let scale = containerEl.dataset.scale || 1;
         el.innerHTML = elData.text;
-        el.style.fontSize = elData.fontSize * this.pageScale;
-        this.pageBackdrop.appendChild(el);
+        el.style.fontSize = elData.fontSize * scale;
+        containerEl.appendChild(el);
         return el;
     }
 
+    resizeEl(el) {
+        console.info('resizing: %o', el);
+        this.setScale(el);
+        let els = el.getElementsByClassName('jzd-element-container');
+        for (let i = 0 ; i < els.length ; i++) {
+            this.elementContainerSetSize(els[i], el);
+        }
+    }
+
+    windowResized(ev) {
+        let els = document.body.getElementsByClassName('jzd-page-backdrop');
+        for (let i = 0 ; i < els.length ; i++) {
+            els[i].style.width = null;
+            els[i].style.height = null;
+            this.resizeEl(els[i]);
+        }
+    }
+
+    static cloneObject(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
 
     static uuidv4() {  // h/t https://stackoverflow.com/a/2117523
         return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
