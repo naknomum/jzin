@@ -1,23 +1,5 @@
 [
 	{
-		"name": "Tangerine",
-		"regular": {
-			"font-face": {
-				"src": "fonts/Tangerine-Regular.woff2",
-				"font-weight": 400
-			},
-			"pdf": "Tangerine-Regular.ttf"
-		},
-		"bold": {
-			"font-face": {
-				"src": "fonts/Tangerine-Bold.woff2",
-				"font-weight": 700
-			},
-			"pdf": "Tangerine-Bold.ttf"
-		}
-	},
-
-	{
 		"name": "Helvetica",
 		"regular": {
 			"font-face": {
@@ -46,6 +28,95 @@
 				"font-style": "oblique"
 			},
 			"pdf": "Helvetica-BoldOblique"
+		}
+	},
+
+
+	{
+		"name": "DM Sans",
+		"regular": {
+			"font-face": {
+				"src": "fonts/DMSans-Regular.woff2"
+			},
+			"pdf": "DMSans-Regular.ttf"
+		},
+		"italic": {
+			"font-face": {
+				"src": "fonts/DMSans-Italic.woff2"
+			},
+			"pdf": "DMSans-Italic.ttf"
+		},
+		"bold-italic": {
+			"font-face": {
+				"src": "fonts/DMSans-BoldItalic.woff2"
+			},
+			"pdf": "DMSans-BoldItalic.ttf"
+		},
+		"bold": {
+			"font-face": {
+				"src": "fonts/DMSans-Bold.woff2"
+			},
+			"pdf": "DMSans-Bold.ttf"
+		}
+	},
+
+	{
+		"name": "Domine",
+		"regular": {
+			"font-face": {
+				"src": "fonts/Domine-Regular.woff2"
+			},
+			"pdf": "Domine-Regular.ttf"
+		},
+		"bold": {
+			"font-face": {
+				"src": "fonts/Domine-Bold.woff2"
+			},
+			"pdf": "Domine-Bold.ttf"
+		}
+	},
+
+	{
+		"name": "Fredoka One",
+		"regular": {
+			"font-face": {
+				"src": "fonts/FredokaOne-Regular.woff2"
+			},
+			"pdf": "FredokaOne-Regular.ttf"
+		}
+	},
+
+	{
+		"name": "Oswald",
+		"regular": {
+			"font-face": {
+				"src": "fonts/Oswald-Regular.woff2"
+			},
+			"pdf": "Oswald-Regular.ttf"
+		},
+		"bold": {
+			"font-face": {
+				"src": "fonts/Oswald-Bold.woff2"
+			},
+			"pdf": "Oswald-Bold.ttf"
+		}
+	},
+
+	{
+		"name": "Tangerine",
+		"regular": {
+			"font-face": {
+				"src": "fonts/Tangerine-Regular.woff2",
+				"font-weight": 400
+			},
+			"pdf": "Tangerine-Regular.ttf"
+		},
+		"bold": {
+			"font-face": {
+				"src": "fonts/Tangerine-Bold.woff2",
+				"font-weight": 700
+			},
+			"pdf": "Tangerine-Bold.ttf"
 		}
 	}
 
