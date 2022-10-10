@@ -23,6 +23,8 @@
 						"elementType": "text",
 						"position": [30, 300],
 						"fontSize": 30,
+						"height": 30,
+						"width": 120,
 						"_align": "left",
 						"field": "title"
 					}

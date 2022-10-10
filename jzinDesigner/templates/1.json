@@ -28,6 +28,8 @@
 						"elementType": "text",
 						"position": [30, 30],
 						"fontSize": 30,
+						"height": 30,
+						"width": 120,
 						"_align": "left",
 						"field": "title"
 					},
@@ -36,6 +38,8 @@
 						"elementType": "text",
 						"position": [30, 70],
 						"fontSize": 20,
+						"height": 60,
+						"width": 200,
 						"_align": "left",
 						"field": "caption"
 					}

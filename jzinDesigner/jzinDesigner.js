@@ -332,7 +332,7 @@ class jzinDesigner {
         let ident = ev.target.id.split('.');
         //console.log('MMMM %o %o %s', ev.target.id, ident, ev.target.parentElement.dataset.scale);
         let newX = parseFloat(ev.target.style.left) / ev.target.parentElement.dataset.scale;
-        let newY = parseFloat(ev.target.style.top) / ev.target.parentElement.dataset.scale;
+        let newY = (ev.target.parentElement.clientHeight - parseFloat(ev.target.style.top) - ev.target.clientHeight) / ev.target.parentElement.dataset.scale;
         if (this.activeTemplate != null) {
             jzinDesigner.templates[this.activeTemplate].document.pages[ident[0]].elements[ident[1]].position[0] = newX;
             jzinDesigner.templates[this.activeTemplate].document.pages[ident[0]].elements[ident[1]].position[1] = newY;
@@ -398,7 +398,7 @@ class jzinDesigner {
         if (!parentEl) parentEl = el.parentElement;
         let scale = parentEl.dataset.scale || 1;
         el.style.left = scale * el.dataset.positionX;
-        el.style.top = scale * el.dataset.positionY;
+        el.style.top = parentEl.clientHeight - scale * (parseFloat(el.dataset.height) + parseFloat(el.dataset.positionY));
         el.style.width = scale * el.dataset.width;
         el.style.height = scale * el.dataset.height;
     }
