@@ -209,13 +209,18 @@ class jzinDesigner {
         b.style.margin = '0 8px';
         b.style.display = 'inline-block';
         b.setAttribute('class', 'jzd-page-current');
-        b.innerHTML = '0';
+        b.innerHTML = '-';
         bwrapper.appendChild(b);
         b = document.createElement('button');
         b.innerHTML = '>';
         b.addEventListener('click', function(ev) { me.pageChange(1); });
         bwrapper.appendChild(b);
         this.uiEl.appendChild(bwrapper);
+        this.setPageDisplay(this.pageCurrent || 0);
+        b = document.createElement('button');
+        b.innerHTML = 'Create Document from Template';
+        b.addEventListener('xclick', function(ev) { });
+        this.uiEl.appendChild(b);
     }
 
     pageChange(delta) {
@@ -228,6 +233,7 @@ class jzinDesigner {
     }
 
     pageMax() {
+        if (!this.doc || !this.doc.document || !this.doc.document.pages) return 0;
         if (this.activeTemplate == null) return this.doc.document.pages.length - 1;
         return jzinDesigner.templates[this.activeTemplate].document.pages.length - 1;
     }
@@ -396,6 +402,7 @@ class jzinDesigner {
     }
 
     activateElement(el) {
+        if ((el == null) && (this.activeElement == null)) return;
         let els = this.el.getElementsByClassName('jzd-element-active');
         for (let i = 0 ; i < els.length ; i++) {
             els[i].classList.remove('jzd-element-active');
