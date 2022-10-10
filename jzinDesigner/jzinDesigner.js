@@ -75,9 +75,15 @@ class jzinDesigner {
     initTemplates() {
         for (let i = 0 ; i < jzinDesigner.numTemplates ; i++) {
             console.debug('reading template %d', i);
-            fetch('templates/' + i + '.json')
-                .then((resp) => resp.json())
-                .then((data) => this.gotTemplate(i, data));
+            let local = JSON.parse(localStorage.getItem('template' + i));
+            if (local) {
+                console.info('using localStorage for template %d: %o', i, local);
+                this.gotTemplate(i, local);
+            } else {
+                fetch('templates/' + i + '.json')
+                    .then((resp) => resp.json())
+                    .then((data) => this.gotTemplate(i, data));
+            }
         }
     }
 
@@ -333,12 +339,22 @@ class jzinDesigner {
             this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], jzinDesigner.templateFeed);
             let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
             this.previewPages(previewDoc);
+            this.templateAltered(this.activeTemplate);
         } else {
             this.doc.document.pages[ident[0]].elements[ident[1]].position[0] = newX;
             this.doc.document.pages[ident[0]].elements[ident[1]].position[1] = newY;
             console.warn('NEED TO PREVIEW ETC');
         }
         ev.target.dataset.justMoved = true;
+    }
+
+    templateAltered(tnum) {
+        jzinDesigner.templates[tnum].meta._modified = new Date();
+        localStorage.setItem('template' + tnum, JSON.stringify(jzinDesigner.templates[tnum]));
+    }
+
+    resetTemplate(tnum) {
+        localStorage.removeItem('template' + tnum);
     }
 
     elementClicked(ev) {
