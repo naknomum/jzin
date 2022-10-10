@@ -11,10 +11,11 @@ class jzinDesigner {
     constructor(el, dataDirUrl) {
         this.el = el;
         this.pageBackdrop = null;
+        this.pageCurrent = 0;
         this.dataDirUrl = dataDirUrl;
         this.feed = null;
         this.doc = null;
-        this.currentPage = -1;
+        this.activeTemplate = null;
         //this.pageScale = 1;
         this.init();
         return this;
@@ -132,9 +133,54 @@ class jzinDesigner {
         tsel.addEventListener('change', function(ev) { me.chooseTemplate(parseInt(ev.target.value)) });
         this.uiEl.style.zIndex = 1000;
         this.uiEl.style.overflow = 'hidden';
+        let bwrapper = document.createElement('div');
+        bwrapper.style.padding = '4px';
+        let b = document.createElement('button');
+        b.innerHTML = '<';
+        b.addEventListener('click', function(ev) { me.pageChange(-1); });
+        bwrapper.appendChild(b);
+        b = document.createElement('div');
+        b.style.margin = '0 8px';
+        b.style.display = 'inline-block';
+        b.setAttribute('class', 'jzd-page-current');
+        b.innerHTML = '0';
+        bwrapper.appendChild(b);
+        b = document.createElement('button');
+        b.innerHTML = '>';
+        b.addEventListener('click', function(ev) { me.pageChange(1); });
+        bwrapper.appendChild(b);
+        this.uiEl.appendChild(bwrapper);
         this.chooseTemplate(0);
     }
 
+    pageChange(delta) {
+        let goPg = this.pageCurrent;
+        goPg += delta;
+        let max = this.pageMax();
+        if (goPg < 0) goPg = max;
+        if (goPg > max) goPg = 0;
+        this.pageGo(goPg);
+    }
+
+    pageMax() {
+        if (this.activeTemplate == null) return this.doc.document.pages.length - 1;
+        return jzinDesigner.templates[this.activeTemplate].document.pages.length - 1;
+    }
+
+    pageGo(pnum) {
+        if (pnum == this.pageCurrent) return;
+        this.pageCurrent = pnum;
+        this.resetPageBackdrop();
+        this.setPageDisplay(pnum);
+        this.displayPage(this.pageCurrent, this.pageBackdrop, this.doc, true);
+    }
+
+    setPageDisplay(pnum) {
+        let els = document.getElementsByClassName('jzd-page-current');
+        for (let i = 0 ; i < els.length ; i++) {
+            els[i].innerHTML = (pnum+1) + ' / ' + (this.pageMax()+1);
+        }
+    }
 
     chooseTemplate(tnum) {
         console.log('>>>> switch to template %o', tnum);
@@ -156,9 +202,13 @@ class jzinDesigner {
 			"hashtags": [ "hashtag", "tag", "jzin", "item1" ]
 		}
         ];
-        let templateDoc = this.docFromTemplate(jzinDesigner.templates[tnum], templateFeed);
+        //let templateDoc = this.docFromTemplate(jzinDesigner.templates[tnum], templateFeed);
+        this.activeTemplate = tnum;
+        this.doc = this.docFromTemplate(jzinDesigner.templates[tnum], templateFeed);
         this.resetPageBackdrop();
-        this.displayPage(0, this.pageBackdrop, templateDoc, true);
+        this.pageCurrent = 0;
+        this.setPageDisplay(0);
+        this.displayPage(0, this.pageBackdrop, this.doc, true);
 
         let previewDoc = this.docFromTemplate(jzinDesigner.templates[tnum], this.feed.feed);
         this.previewPages(previewDoc);
