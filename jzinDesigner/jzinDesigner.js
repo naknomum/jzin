@@ -181,7 +181,54 @@ class jzinDesigner {
             }
             return;
         }
-        this.uiEl.innerHTML = el.id;
+        let ident = el.id.split('.');
+        let elData = this.doc.document.pages[ident[0]].elements[ident[1]];
+        //this.uiEl.innerHTML = el.id + ':' + JSON.stringify(elData);
+        if (elData.elementType == 'image') {
+            this.setUIImage(el, elData, ident[0], ident[1]);
+        } else {
+            this.setUIText(el, elData, ident[0], ident[1]);
+        }
+    }
+
+    setUIImage(el, elData, pgNum, elNum) {
+        this.uiEl.innerHTML = pgNum + ',' + elNum + ':' + JSON.stringify(elData);
+    }
+
+    setUIText(el, elData, pgNum, elNum) {
+        this.uiEl.innerHTML = '';
+        let fsel = jzinDesigner.fontSelect.cloneNode(true);
+        let me = this;
+
+        fsel.addEventListener('change', function(ev) {
+            //console.log('%s -> %d, %d', ev.target.value, pgNum, elNum);
+            let ptr = me.elementPointer(pgNum, elNum);
+            ptr.font = ev.target.value;
+            el.style.fontFamily = ev.target.value;
+            me.elementChanged(el);
+        });
+        fsel.addEventListener('click', function(ev) { ev.stopPropagation(); });
+        this.uiEl.appendChild(fsel);
+
+        let asel = document.createElement('select');
+        asel.innerHTML = '<option>left</option><option>center</option><option>right</option>';
+        asel.value = (elData.options && elData.options.align) || 'left';
+        asel.addEventListener('change', function(ev) {
+            //console.log('%s -> %d, %d', ev.target.value, pgNum, elNum);
+            let ptr = me.elementPointer(pgNum, elNum);
+            let opts = ptr.options || {};
+            opts.align = ev.target.value;
+            ptr.options = opts;
+            el.style.textAlign = ev.target.value;
+            me.elementChanged(el);
+        });
+        asel.addEventListener('click', function(ev) { ev.stopPropagation(); });
+        this.uiEl.appendChild(asel);
+
+        let sizeInp = document.createElement('input');
+        sizeInp.value = elData.fontSize || 20;
+        sizeInp.addEventListener('click', function(ev) { ev.stopPropagation(); });
+        this.uiEl.appendChild(sizeInp);
     }
 
     initTemplateUI() {
@@ -367,19 +414,33 @@ class jzinDesigner {
         //console.log('MMMM %o %o %s', ev.target.id, ident, ev.target.parentElement.dataset.scale);
         let newX = parseFloat(ev.target.style.left) / ev.target.parentElement.dataset.scale;
         let newY = (ev.target.parentElement.clientHeight - parseFloat(ev.target.style.top) - ev.target.clientHeight) / ev.target.parentElement.dataset.scale;
+        let ptr = this.elementPointer(ident[0], ident[1]);
+        ptr.position[0] = newX;
+        ptr.position[1] = newY;
+        this.elementChanged(ev.target);
+        ev.target.dataset.justMoved = true;
+    }
+
+    // points into the right thing to change, based on which mode (template edit vs doc edit)
+    elementPointer(pgNum, elNum) {
         if (this.activeTemplate != null) {
-            jzinDesigner.templates[this.activeTemplate].document.pages[ident[0]].elements[ident[1]].position[0] = newX;
-            jzinDesigner.templates[this.activeTemplate].document.pages[ident[0]].elements[ident[1]].position[1] = newY;
+            return jzinDesigner.templates[this.activeTemplate].document.pages[pgNum].elements[elNum];
+        } else {
+            return this.doc.document.pages[pgNum].elements[elNum];
+        }
+    }
+
+    elementChanged(el) {
+        let ident = el.id.split('.');
+        console.info('element changed! %d,%d %o', ident[0], ident[1], el);
+        if (this.activeTemplate != null) {
             this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], jzinDesigner.templateFeed);
             let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
             this.previewPages(previewDoc);
             this.templateAltered(this.activeTemplate);
         } else {
-            this.doc.document.pages[ident[0]].elements[ident[1]].position[0] = newX;
-            this.doc.document.pages[ident[0]].elements[ident[1]].position[1] = newY;
             console.warn('NEED TO PREVIEW ETC');
         }
-        ev.target.dataset.justMoved = true;
     }
 
     templateAltered(tnum) {
@@ -402,6 +463,7 @@ class jzinDesigner {
     }
 
     activateElement(el) {
+console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         if ((el == null) && (this.activeElement == null)) return;
         let els = this.el.getElementsByClassName('jzd-element-active');
         for (let i = 0 ; i < els.length ; i++) {
@@ -436,6 +498,7 @@ class jzinDesigner {
         el.style.top = parentEl.clientHeight - scale * (parseFloat(el.dataset.height) + parseFloat(el.dataset.positionY));
         el.style.width = scale * el.dataset.width;
         el.style.height = scale * el.dataset.height;
+        if (el.dataset.fontSize) el.style.fontSize = parseFloat(el.dataset.fontSize) * scale;
     }
 
     elementContainer(containerEl, elData) {
@@ -465,7 +528,19 @@ class jzinDesigner {
         let el = this.elementContainer(containerEl, elData);
         let scale = containerEl.dataset.scale || 1;
         el.innerHTML = elData.text;
+        el.dataset.fontSize = elData.fontSize;
         el.style.fontSize = elData.fontSize * scale;
+        if (elData.font) el.style.fontFamily = elData.font;
+        if (elData.options && elData.options.align) el.style.textAlign = elData.options.align;
+        if (elData.textType == 'paragraph') {
+            if (!elData.overflow) el.style.overflowY = 'hidden';
+        } else {
+            if (!elData.overflow) {
+                // FIXME better to overflowX hidden here, but that makes scrollbar :(
+                el.style.overflow = 'hidden';
+            }
+            el.style.whiteSpace = 'nowrap';
+        }
         containerEl.appendChild(el);
         return el;
     }

@@ -23,10 +23,10 @@
 					{
 						"elementType": "text",
 						"position": [30, 200],
+						"options": { "align": "center" },
 						"fontSize": 30,
 						"height": 30,
 						"width": 150,
-						"_align": "left",
 						"itemOffset": 0,
 						"field": "title"
 					},
@@ -44,10 +44,10 @@
 					{
 						"elementType": "text",
 						"position": [200, 200],
+						"options": { "align": "center" },
 						"fontSize": 30,
 						"height": 30,
 						"width": 150,
-						"_align": "left",
 						"itemOffset": 1,
 						"field": "title"
 					}

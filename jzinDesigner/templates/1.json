@@ -26,21 +26,23 @@
 				"elements": [
 					{
 						"elementType": "text",
+						"options": { "align": "center" },
 						"position": [30, 30],
 						"fontSize": 30,
 						"height": 30,
 						"width": 120,
-						"_align": "left",
 						"field": "title"
 					},
 
 					{
 						"elementType": "text",
+						"textType": "paragraph",
+						"options": { "align": "left" },
+						"overflow": true,
 						"position": [30, 70],
 						"fontSize": 20,
 						"height": 60,
 						"width": 200,
-						"_align": "left",
 						"field": "caption"
 					}
 
