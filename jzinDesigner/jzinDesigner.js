@@ -2,6 +2,7 @@
 class jzinDesigner {
 
     static fonts = null;
+    static fontSelect = null;
 
     static numTemplates = 3;
     static templates = [];
@@ -119,8 +120,35 @@ class jzinDesigner {
     }
 
     gotFonts(fdata) {
-        console.log('FONT DATA: %o', fdata);
+        jzinDesigner.fontSelect = document.createElement('select');
+        let ssheet = null;
+        for (let i = 0 ; i < document.styleSheets.length ; i++) {
+            if (document.styleSheets[i].title == 'jzd-main') ssheet = document.styleSheets[i];
+        }
+        if (!ssheet) alert('styleSheet fail');
         jzinDesigner.fonts = fdata;
+        for (let i = 0 ; i < fdata.length ; i++) {
+            if (fdata[i]['built-in']) continue;  // TODO support internal fonts
+            let name = fdata[i].name;
+            for (let key in fdata[i]) {
+                if (key == 'name') continue;
+                let opt = document.createElement('option');
+                let fontFamilyName = name + ' ' + key;
+                opt.value = fontFamilyName;
+                opt.innerHTML = name + ' (' + key + ')';
+                jzinDesigner.fontSelect.appendChild(opt);
+                let rule = '@font-face { font-family: "' + fontFamilyName + '"; ';
+                for (let ffkey in fdata[i][key]['font-face']) {
+                    if (ffkey == 'src') {
+                        rule += 'src: url("' + fdata[i][key]['font-face'].src + '") format("woff"); ';
+                    } else {
+                        rule += ffkey + ': "' + fdata[i][key]['font-face'][ffkey] + '"; ';
+                    }
+                }
+                rule += ' }';
+                ssheet.insertRule(rule, 0);
+            }
+        }
         this.initUI();
     }
 

@@ -1,6 +1,7 @@
 [
 	{
 		"name": "Helvetica",
+		"built-in": true,
 		"regular": {
 			"font-face": {
 				"src": "arial, sans"
@@ -42,19 +43,23 @@
 		},
 		"italic": {
 			"font-face": {
-				"src": "fonts/DMSans-Italic.woff2"
+				"src": "fonts/DMSans-Italic.woff2",
+				"font-style": "italic"
 			},
 			"pdf": "DMSans-Italic.ttf"
 		},
 		"bold-italic": {
 			"font-face": {
-				"src": "fonts/DMSans-BoldItalic.woff2"
+				"src": "fonts/DMSans-BoldItalic.woff2",
+				"font-weight": "bold",
+				"font-style": "italic"
 			},
 			"pdf": "DMSans-BoldItalic.ttf"
 		},
 		"bold": {
 			"font-face": {
-				"src": "fonts/DMSans-Bold.woff2"
+				"src": "fonts/DMSans-Bold.woff2",
+				"font-weight": "bold"
 			},
 			"pdf": "DMSans-Bold.ttf"
 		}
@@ -70,7 +75,8 @@
 		},
 		"bold": {
 			"font-face": {
-				"src": "fonts/Domine-Bold.woff2"
+				"src": "fonts/Domine-Bold.woff2",
+				"font-weight": "bold"
 			},
 			"pdf": "Domine-Bold.ttf"
 		}
@@ -96,7 +102,8 @@
 		},
 		"bold": {
 			"font-face": {
-				"src": "fonts/Oswald-Bold.woff2"
+				"src": "fonts/Oswald-Bold.woff2",
+				"font-weight": "bold"
 			},
 			"pdf": "Oswald-Bold.ttf"
 		}
