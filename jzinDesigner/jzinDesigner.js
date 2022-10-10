@@ -8,6 +8,25 @@ class jzinDesigner {
 
     static resizeTimer = null;
 
+    static templateFeed = [
+            {
+                    "image": "templates/image-placeholder.png",
+                    "author": "{author0}",
+                    "title": "{title0}",
+                    "caption": "{The caption for Item 0}",
+                    "time": "1999-12-31T00:00:00+00:00",
+                    "hashtags": [ "hashtag", "tag", "jzin", "item0" ]
+            },
+            {
+                    "image": "templates/image-placeholder.png",
+                    "author": "{author1}",
+                    "title": "{title1}",
+                    "caption": "{The caption for Item 1}",
+                    "time": "1999-12-31T01:01:01+00:00",
+                    "hashtags": [ "hashtag", "tag", "jzin", "item1" ]
+            }
+    ];
+
     constructor(el, dataDirUrl) {
         this.el = el;
         this.pageBackdrop = null;
@@ -16,7 +35,7 @@ class jzinDesigner {
         this.feed = null;
         this.doc = null;
         this.activeTemplate = null;
-        //this.pageScale = 1;
+        this.activeElement = null;
         this.init();
         return this;
     }
@@ -27,13 +46,16 @@ class jzinDesigner {
             clearTimeout(jzinDesigner.resizeTimer);
             jzinDesigner.resizeTimer = setTimeout(function() { me.windowResized(ev); }, 600);
         });
+        this.el.addEventListener('click', function(ev) {
+            me.activateElement(null);
+        });
         if (!this.el.style.position) this.el.style.position = 'relative';
         this.uiEl = document.createElement('div');
         this.uiEl.style.position = 'absolute';
         this.uiEl.style.width = '300px';
         this.uiEl.style.height = '400px';
         this.uiEl.style.top = '10px';
-        this.uiEl.style.right = '10px';
+        this.uiEl.style.right = '50%';
         this.uiEl.style.backgroundColor = 'rgba(240,240,240,0.6)';
         this.uiEl.style.padding = '3px';
         this.uiEl.setAttribute('class', 'jzd-ui');
@@ -112,11 +134,20 @@ class jzinDesigner {
         if (!this.doc) return;
 
         // have everything we need
-        if (this.doc.pages) {
-            this.initDocUI();
-        } else {
-            this.initTemplateUI();
+        this.setUI();
+        this.chooseTemplate(0);
+    }
+
+    setUI(el) {
+        if (!el) {
+            if (this.activeTemplate || !this.doc.pages) {
+                this.initTemplateUI();
+            } else {
+                this.initDocUI();
+            }
+            return;
         }
+        this.uiEl.innerHTML = el.id;
     }
 
     initTemplateUI() {
@@ -124,6 +155,7 @@ class jzinDesigner {
         let tsel = document.createElement('select');
         for (let i = 0 ; i < jzinDesigner.templates.length ; i++) {
             let topt = document.createElement('option');
+            if (i == this.activeTemplate) topt.setAttribute('selected', '');
             topt.setAttribute('value', i);
             topt.innerHTML = jzinDesigner.templates[i].meta.title;
             tsel.appendChild(topt);
@@ -150,7 +182,6 @@ class jzinDesigner {
         b.addEventListener('click', function(ev) { me.pageChange(1); });
         bwrapper.appendChild(b);
         this.uiEl.appendChild(bwrapper);
-        this.chooseTemplate(0);
     }
 
     pageChange(delta) {
@@ -184,27 +215,8 @@ class jzinDesigner {
 
     chooseTemplate(tnum) {
         console.log('>>>> switch to template %o', tnum);
-        let templateFeed = [
-		{
-			"image": "templates/image-placeholder.png",
-			"author": "{author0}",
-			"title": "{title0}",
-			"caption": "{The caption for Item 0}",
-			"time": "1999-12-31T00:00:00+00:00",
-			"hashtags": [ "hashtag", "tag", "jzin", "item0" ]
-		},
-		{
-			"image": "templates/image-placeholder.png",
-			"author": "{author1}",
-			"title": "{title1}",
-			"caption": "{The caption for Item 1}",
-			"time": "1999-12-31T01:01:01+00:00",
-			"hashtags": [ "hashtag", "tag", "jzin", "item1" ]
-		}
-        ];
-        //let templateDoc = this.docFromTemplate(jzinDesigner.templates[tnum], templateFeed);
         this.activeTemplate = tnum;
-        this.doc = this.docFromTemplate(jzinDesigner.templates[tnum], templateFeed);
+        this.doc = this.docFromTemplate(jzinDesigner.templates[tnum], jzinDesigner.templateFeed);
         this.resetPageBackdrop();
         this.pageCurrent = 0;
         this.setPageDisplay(0);
@@ -281,10 +293,16 @@ class jzinDesigner {
         let pgh = doc.document.pages[pnum].size[2] - doc.document.pages[pnum].size[0];
         this.setScale(containerEl, pgw, pgh);
 
+        let me = this;
         for (let i = 0 ; i < doc.document.pages[pnum].elements.length ; i++) {
             let added = this.addElement(containerEl, doc.document.pages[pnum].elements[i], i);
             if (added) {
-                if (editable && added) new Draggy(added);
+                if (editable) {
+                    new Draggy(added);
+                    added.addEventListener('draggy.moved', function(ev) { me.elementMoved(ev); });
+                    added.addEventListener('click', function(ev) { me.elementClicked(ev); });
+                }
+                added.id = pnum + '.' + i;
                 added.title = 'p' + pnum + ' el' + i + ' ' + added.title;
             }
         }
@@ -302,6 +320,46 @@ class jzinDesigner {
         el.dataset.pageWidth = pgw;
         el.dataset.pageHeight = pgh;
         return scale;
+    }
+
+    elementMoved(ev) {
+        let ident = ev.target.id.split('.');
+        //console.log('MMMM %o %o %s', ev.target.id, ident, ev.target.parentElement.dataset.scale);
+        let newX = parseFloat(ev.target.style.left) / ev.target.parentElement.dataset.scale;
+        let newY = parseFloat(ev.target.style.top) / ev.target.parentElement.dataset.scale;
+        if (this.activeTemplate != null) {
+            jzinDesigner.templates[this.activeTemplate].document.pages[ident[0]].elements[ident[1]].position[0] = newX;
+            jzinDesigner.templates[this.activeTemplate].document.pages[ident[0]].elements[ident[1]].position[1] = newY;
+            this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], jzinDesigner.templateFeed);
+            let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
+            this.previewPages(previewDoc);
+        } else {
+            this.doc.document.pages[ident[0]].elements[ident[1]].position[0] = newX;
+            this.doc.document.pages[ident[0]].elements[ident[1]].position[1] = newY;
+            console.warn('NEED TO PREVIEW ETC');
+        }
+        ev.target.dataset.justMoved = true;
+    }
+
+    elementClicked(ev) {
+        let el = ev.target.closest('.jzd-element-container');
+        if (el.dataset.justMoved) {
+            delete el.dataset.justMoved;
+            return;
+        }
+        this.activateElement(el);
+        ev.stopPropagation();
+    }
+
+    activateElement(el) {
+        let els = this.el.getElementsByClassName('jzd-element-active');
+        for (let i = 0 ; i < els.length ; i++) {
+            els[i].classList.remove('jzd-element-active');
+        }
+        this.activeElement = el;
+        this.setUI(el);
+        if (el == null) return;
+        el.classList.add('jzd-element-active');
     }
 
     addElement(containerEl, elData, depth) {
