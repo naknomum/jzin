@@ -60,6 +60,7 @@ class jzinDesigner {
         this.uiEl.style.backgroundColor = 'rgba(240,240,240,0.6)';
         this.uiEl.style.padding = '3px';
         this.uiEl.setAttribute('class', 'jzd-ui');
+        this.uiEl.addEventListener('click', function(ev) { ev.stopPropagation(); });
         this.el.appendChild(this.uiEl);
         new Draggy(this.uiEl, false, true);
 
@@ -199,36 +200,67 @@ class jzinDesigner {
         this.uiEl.innerHTML = '';
         let fsel = jzinDesigner.fontSelect.cloneNode(true);
         let me = this;
+        let scale = parseFloat(el.parentElement.dataset.scale);
 
         fsel.addEventListener('change', function(ev) {
-            //console.log('%s -> %d, %d', ev.target.value, pgNum, elNum);
             let ptr = me.elementPointer(pgNum, elNum);
             ptr.font = ev.target.value;
-            el.style.fontFamily = ev.target.value;
+            me.setTextElementStyle(el, ptr);
             me.elementChanged(el);
         });
-        fsel.addEventListener('click', function(ev) { ev.stopPropagation(); });
         this.uiEl.appendChild(fsel);
 
         let asel = document.createElement('select');
         asel.innerHTML = '<option>left</option><option>center</option><option>right</option>';
         asel.value = (elData.options && elData.options.align) || 'left';
         asel.addEventListener('change', function(ev) {
-            //console.log('%s -> %d, %d', ev.target.value, pgNum, elNum);
             let ptr = me.elementPointer(pgNum, elNum);
             let opts = ptr.options || {};
             opts.align = ev.target.value;
             ptr.options = opts;
-            el.style.textAlign = ev.target.value;
+            me.setTextElementStyle(el, ptr);
             me.elementChanged(el);
         });
-        asel.addEventListener('click', function(ev) { ev.stopPropagation(); });
         this.uiEl.appendChild(asel);
 
         let sizeInp = document.createElement('input');
+        sizeInp.style.width = '3em';
         sizeInp.value = elData.fontSize || 20;
-        sizeInp.addEventListener('click', function(ev) { ev.stopPropagation(); });
+        sizeInp.addEventListener('change', function(ev) {
+            let ptr = me.elementPointer(pgNum, elNum);
+            ptr.fontSize = parseInt(ev.target.value);
+            me.setTextElementStyle(el, ptr);
+            me.elementChanged(el);
+        });
         this.uiEl.appendChild(sizeInp);
+
+        let pcheck = document.createElement('input');
+        pcheck.setAttribute('type', 'checkbox');
+        pcheck.setAttribute('title', 'paragraph (wrap)');
+        if (elData.textType == 'paragraph') pcheck.setAttribute('checked', null);
+        pcheck.addEventListener('change', function(ev) {
+            let ptr = me.elementPointer(pgNum, elNum);
+            if (ev.target.checked) {
+                ptr.textType = 'paragraph';
+            } else {
+                delete ptr.textType;
+            }
+            me.setTextElementStyle(el, ptr);
+            me.elementChanged(el);
+        });
+        this.uiEl.appendChild(pcheck);
+
+        let ocheck = document.createElement('input');
+        ocheck.setAttribute('type', 'checkbox');
+        ocheck.setAttribute('title', 'overflow');
+        if (elData.overflow) ocheck.setAttribute('checked', null);
+        ocheck.addEventListener('change', function(ev) {
+            let ptr = me.elementPointer(pgNum, elNum);
+            ptr.overflow = ev.target.checked;
+            me.setTextElementStyle(el, ptr);
+            me.elementChanged(el);
+        });
+        this.uiEl.appendChild(ocheck);
     }
 
     initTemplateUI() {
@@ -529,8 +561,13 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         let scale = containerEl.dataset.scale || 1;
         el.innerHTML = elData.text;
         el.dataset.fontSize = elData.fontSize;
-        el.style.fontSize = elData.fontSize * scale;
-        if (elData.font) el.style.fontFamily = elData.font;
+        this.setTextElementStyle(el, elData, scale);
+        containerEl.appendChild(el);
+        return el;
+    }
+
+    setTextElementStyle(el, elData, scale) {
+        if (!scale) scale = parseFloat(el.parentElement.dataset.scale) || 1;
         if (elData.options && elData.options.align) el.style.textAlign = elData.options.align;
         if (elData.textType == 'paragraph') {
             if (!elData.overflow) el.style.overflowY = 'hidden';
@@ -541,8 +578,8 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
             }
             el.style.whiteSpace = 'nowrap';
         }
-        containerEl.appendChild(el);
-        return el;
+        el.style.fontSize = elData.fontSize * scale;
+        if (elData.font) el.style.fontFamily = elData.font;
     }
 
     resizeEl(el) {
