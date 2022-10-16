@@ -50,6 +50,11 @@ class jzinDesigner {
         this.el.addEventListener('click', function(ev) {
             me.activateElement(null);
         });
+
+        // for resize movements
+        this.el.addEventListener('mousemove', function(ev) { me.cornerEvent(ev); });
+        this.el.addEventListener('mouseup', function(ev) { me.cornerEvent(ev); });
+
         if (!this.el.style.position) this.el.style.position = 'relative';
         this.uiEl = document.createElement('div');
         this.uiEl.style.position = 'absolute';
@@ -509,6 +514,7 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
 
     addElement(containerEl, elData, depth) {
         if (elData.hidden) return;
+        let me = this;
         let el = null;
         if (elData.elementType == 'image') {
             el = this.addImageElement(containerEl, elData);
@@ -520,7 +526,90 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         }
         el.style.zIndex = depth;
         el.title = elData.elementType + ' [depth ' + depth + ']';
+        let r = 11;
+        let cpos = [{top: -r, left: -r}, {top: -r, right: -r}, {bottom: -r, left: -r}, {bottom: -r, right: -r}];
+        for (let i = 0 ; i < 4 ; i++) {
+            let rc = document.createElement('div');
+            rc.setAttribute('class', 'jzd-resize-corners no-drag');
+            rc.dataset.corner = i;
+            rc.style.cursor = 'nwse-resize';
+            if ((i == 1) || (i == 2)) rc.style.cursor = 'nesw-resize';
+            for (let pos in cpos[i]) {
+                rc.style[pos] = cpos[i][pos];
+            }
+            rc.addEventListener('mousedown', function(ev) { me.cornerEvent(ev); });
+            el.appendChild(rc);
+        }
         return el;
+    }
+
+    cornerEvent(ev) {
+        if (ev.type == 'mousedown') {
+            ev.target.parentElement.classList.add('no-drag');
+            this.resizePreview = document.createElement('div');
+            this.resizePreview.setAttribute('class', 'jzd-resize-preview');
+            this.resizePreview.style.top = ev.target.parentElement.style.top;
+            this.resizePreview.style.left = ev.target.parentElement.style.left;
+            this.resizePreview.style.width = ev.target.parentElement.style.width;
+            this.resizePreview.style.height = ev.target.parentElement.style.height;
+            this.resizeElement = ev.target.parentElement;
+
+            this.resizePreview.dataset.corner = ev.target.dataset.corner;
+/*
+            this.resizePreview.dataset.origW = this.resizePreview.style.width;
+            this.resizePreview.dataset.origH = this.resizePreview.style.height;
+            this.resizePreview.dataset.origTop = this.resizePreview.style.top;
+            this.resizePreview.dataset.origLeft = this.resizePreview.style.left;
+*/
+            this.resizePreview.dataset.downX = ev.clientX;
+            this.resizePreview.dataset.downY = ev.clientY;
+
+            this.pageBackdrop.appendChild(this.resizePreview);
+
+            ev.stopPropagation();
+            ev.preventDefault();
+            return;
+        }
+
+        if (!this.resizePreview) return;
+        ev.stopPropagation();
+        ev.preventDefault();
+
+        if (ev.type == 'mousemove') {
+            let cor = parseInt(this.resizePreview.dataset.corner);
+            let downX = parseInt(this.resizePreview.dataset.downX);
+            let downY = parseInt(this.resizePreview.dataset.downY);
+            let dx = ev.clientX - downX;
+            let dy = ev.clientY - downY;
+
+            console.log('RESIZING! [%d] %f %f', cor, dx, dy);
+            if (cor == 0) {
+                this.resizePreview.style.left = parseInt(this.resizePreview.dataset.origLeft) + dx + 'px';
+                this.resizePreview.style.top = parseInt(this.resizePreview.dataset.origTop) + dy + 'px';
+                this.resizePreview.style.width = parseInt(this.resizePreview.dataset.origW) - dx + 'px';
+                this.resizePreview.style.height = parseInt(this.resizePreview.dataset.origH) - dy + 'px';
+            } else if (cor == 1) {
+                this.resizePreview.style.top = parseInt(this.resizePreview.dataset.origTop) + dy + 'px';
+                this.resizePreview.style.height = parseInt(this.resizePreview.dataset.origH) - dy + 'px';
+                this.resizePreview.style.width = parseInt(this.resizePreview.dataset.origW) + dx + 'px';
+            } else if (cor == 2) {
+                this.resizePreview.style.left = parseInt(this.resizePreview.dataset.origLeft) + dx + 'px';
+                this.resizePreview.style.width = parseInt(this.resizePreview.dataset.origW) - dx + 'px';
+                this.resizePreview.style.height = parseInt(this.resizePreview.dataset.origH) + dy + 'px';
+            } else if (cor == 3) {
+                this.resizePreview.style.width = parseInt(this.resizePreview.dataset.origW) + dx + 'px';
+                this.resizePreview.style.height = parseInt(this.resizePreview.dataset.origH) + dy + 'px';
+            }
+
+        } else if (ev.type == 'mouseup') {
+            console.log('RESIZE MOUSEUP!!! on %o', this.resizeElement);
+            //ev.target.parentElement.classList.remove('no-drag');
+            this.resizePreview.remove();
+            this.resizePreview = null;
+            this.resizeElement = null;
+        }
+        //console.log(ev.target);
+        ev.stopPropagation();
     }
 
     elementContainerSetSize(el, parentEl) {
