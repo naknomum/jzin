@@ -6,6 +6,8 @@
 to print as books, small booklets, zines, etc.   As such, it also handles complex layout and page ordering in order to facilitate
 concepts like N-up printing, signatures, and so on.
 
+![diagram showing jzin creating a pdf](docs/overview.png)
+
 ## jzin2pdf
 
 This is the main script which generates the PDF based on the [jzin JSON file](docs/jzin.md).
