@@ -582,34 +582,38 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
             let dx = ev.clientX - downX;
             let dy = ev.clientY - downY;
 
-            console.log('RESIZING! [%d] %f %f', cor, dx, dy);
+            //console.log('RESIZING! [%d] %f %f', cor, dx, dy);
             if (cor == 0) {
-                this.resizePreview.style.left = parseInt(this.resizePreview.dataset.origLeft) + dx + 'px';
-                this.resizePreview.style.top = parseInt(this.resizePreview.dataset.origTop) + dy + 'px';
-                this.resizePreview.style.width = parseInt(this.resizePreview.dataset.origW) - dx + 'px';
-                this.resizePreview.style.height = parseInt(this.resizePreview.dataset.origH) - dy + 'px';
+                this.resizePreview.style.left = parseInt(this.resizeElement.style.left) + dx + 'px';
+                this.resizePreview.style.top = parseInt(this.resizeElement.style.top) + dy + 'px';
+                this.resizePreview.style.width = parseInt(this.resizeElement.style.width) - dx + 'px';
+                this.resizePreview.style.height = parseInt(this.resizeElement.style.height) - dy + 'px';
             } else if (cor == 1) {
-                this.resizePreview.style.top = parseInt(this.resizePreview.dataset.origTop) + dy + 'px';
-                this.resizePreview.style.height = parseInt(this.resizePreview.dataset.origH) - dy + 'px';
-                this.resizePreview.style.width = parseInt(this.resizePreview.dataset.origW) + dx + 'px';
+                this.resizePreview.style.top = parseInt(this.resizeElement.style.top) + dy + 'px';
+                this.resizePreview.style.height = parseInt(this.resizeElement.style.height) - dy + 'px';
+                this.resizePreview.style.width = parseInt(this.resizeElement.style.width) + dx + 'px';
             } else if (cor == 2) {
-                this.resizePreview.style.left = parseInt(this.resizePreview.dataset.origLeft) + dx + 'px';
-                this.resizePreview.style.width = parseInt(this.resizePreview.dataset.origW) - dx + 'px';
-                this.resizePreview.style.height = parseInt(this.resizePreview.dataset.origH) + dy + 'px';
+                this.resizePreview.style.left = parseInt(this.resizeElement.style.left) + dx + 'px';
+                this.resizePreview.style.width = parseInt(this.resizeElement.style.width) - dx + 'px';
+                this.resizePreview.style.height = parseInt(this.resizeElement.style.height) + dy + 'px';
             } else if (cor == 3) {
-                this.resizePreview.style.width = parseInt(this.resizePreview.dataset.origW) + dx + 'px';
-                this.resizePreview.style.height = parseInt(this.resizePreview.dataset.origH) + dy + 'px';
+                this.resizePreview.style.width = parseInt(this.resizeElement.style.width) + dx + 'px';
+                this.resizePreview.style.height = parseInt(this.resizeElement.style.height) + dy + 'px';
             }
 
         } else if (ev.type == 'mouseup') {
             console.log('RESIZE MOUSEUP!!! on %o', this.resizeElement);
-            //ev.target.parentElement.classList.remove('no-drag');
+            this.resizeElement.classList.remove('no-drag');
+            this.resizeElement.style.left = this.resizePreview.style.left;
+            this.resizeElement.style.top = this.resizePreview.style.top;
+            this.resizeElement.style.width = this.resizePreview.style.width;
+            this.resizeElement.style.height = this.resizePreview.style.height;
+
             this.resizePreview.remove();
             this.resizePreview = null;
+            this.elementChanged(this.resizeElement);
             this.resizeElement = null;
         }
-        //console.log(ev.target);
-        ev.stopPropagation();
     }
 
     elementContainerSetSize(el, parentEl) {
