@@ -458,6 +458,21 @@ class jzinDesigner {
         ev.target.dataset.justMoved = true;
     }
 
+    elementResized(el) {
+        let ident = el.id.split('.');
+        let newX = parseFloat(el.style.left) / el.parentElement.dataset.scale;
+        let newY = (el.parentElement.clientHeight - parseFloat(el.style.top) - el.clientHeight) / el.parentElement.dataset.scale;
+        let newW = parseFloat(el.style.width) / el.parentElement.dataset.scale;
+        let newH = parseFloat(el.style.height) / el.parentElement.dataset.scale;
+        let ptr = this.elementPointer(ident[0], ident[1]);
+        ptr.position[0] = newX;
+        ptr.position[1] = newY;
+        ptr.width = newW;
+        ptr.height = newH;
+        el.dataset.justMoved = true;
+        this.elementChanged(el);
+    }
+
     // points into the right thing to change, based on which mode (template edit vs doc edit)
     elementPointer(pgNum, elNum) {
         if (this.activeTemplate != null) {
@@ -611,7 +626,7 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
 
             this.resizePreview.remove();
             this.resizePreview = null;
-            this.elementChanged(this.resizeElement);
+            this.elementResized(this.resizeElement);
             this.resizeElement = null;
         }
     }
