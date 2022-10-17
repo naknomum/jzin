@@ -708,6 +708,14 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         }
     }
 
+    print() {
+        let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
+        let docJson = JSON.stringify(previewDoc);
+        fetch('/mkpdf', { method: 'POST', headers: {'content-type': 'application/json'}, body: docJson })
+            .then((response) => response.json())
+            .then((data) => console.log(data));
+    }
+
     static cloneObject(obj) {
         return JSON.parse(JSON.stringify(obj));
     }
