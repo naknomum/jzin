@@ -731,24 +731,25 @@ console.log('layout sheetInit = %d', sheetInit);
                         for (let x = 0 ; x < numAcross ; x++) {
                             if (x % 2 == 1) {
                                 if (side == 0) {
-                                    pageOrder.push(sheetInit + y * 9999);  //fixme
+                                    pageOrder.push(sheetInit + x - 1 + y * 9999);  //fixme
                                 } else {
-                                    pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 - 2 + y * 9999);  //fixme
+                                    ////pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 - x - 2 + y * 9999);  //fixme
+                                    pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 + x - 1 - numAcross + y * 9999);  //fixme
                                 }
                             } else {
                                 if (side == 0) {
-                                    pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 - 1 + y * 9999);  //fixme
+                                    pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 - x - 1 + y * 9999);  //fixme
                                 } else {
-                                    pageOrder.push(sheetInit + 1 + y * 9999);  //fixme
+                                    pageOrder.push(sheetInit + (numAcross - 1) - x + y * 9999);  //fixme
                                 }
                             }
 console.log('>> layout pushed %s', pageOrder[pageOrder.length-1]);
                         }
                     }
-pageOrder.push('_');
                 }
                 sheetsProcessed++;
                 offset += numAcross;
+pageOrder.push('_');
             }
         }
         return pageOrder;
