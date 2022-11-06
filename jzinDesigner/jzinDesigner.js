@@ -708,6 +708,52 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         }
     }
 
+    layout(paperSize, numAcross, numDown, signatureSheets) {
+        numAcross = numAcross || 1;
+        numDown = numDown || 1;
+        signatureSheets = signatureSheets || 0;
+        let pageOrder = [];
+        let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
+        let numPages = previewDoc.document.pages.length;
+        let perSheet = numAcross * numDown * 2;
+        let numSheets = Math.ceil(numPages / perSheet);
+console.log('layout numPages=%d perSheet=%d numSheets=%d', numPages, perSheet, numSheets);
+        if (!signatureSheets) signatureSheets = numSheets;
+
+        let sheetsProcessed = 0;
+        while (sheetsProcessed < numSheets) {
+            let offset = sheetsProcessed * perSheet;
+            for (let sig = 0 ; sig < signatureSheets ; sig++) {
+                let sheetInit = offset;
+console.log('layout sheetInit = %d', sheetInit);
+                for (let side = 0 ; side < 2 ; side++) {
+                    for (let y = 0 ; y < numDown ; y++) {
+                        for (let x = 0 ; x < numAcross ; x++) {
+                            if (x % 2 == 1) {
+                                if (side == 0) {
+                                    pageOrder.push(sheetInit + y * 9999);  //fixme
+                                } else {
+                                    pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 - 2 + y * 9999);  //fixme
+                                }
+                            } else {
+                                if (side == 0) {
+                                    pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 - 1 + y * 9999);  //fixme
+                                } else {
+                                    pageOrder.push(sheetInit + 1 + y * 9999);  //fixme
+                                }
+                            }
+console.log('>> layout pushed %s', pageOrder[pageOrder.length-1]);
+                        }
+                    }
+pageOrder.push('_');
+                }
+                sheetsProcessed++;
+                offset += numAcross;
+            }
+        }
+        return pageOrder;
+    }
+
     print() {
         let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
         let docJson = JSON.stringify(previewDoc);
