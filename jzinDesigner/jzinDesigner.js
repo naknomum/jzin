@@ -717,9 +717,10 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         let numPages = previewDoc.document.pages.length;
         let perSheet = numAcross * numDown * 2;
         let numSheets = Math.ceil(numPages / perSheet);
-console.log('layout numPages=%d perSheet=%d numSheets=%d', numPages, perSheet, numSheets);
         if (!signatureSheets) signatureSheets = numSheets;
 
+        let perRowStack = numSheets * numAcross * 2;
+console.log('layout numPages=%d perSheet=%d numSheets=%d perRowStack=%d', numPages, perSheet, numSheets, perRowStack);
         let sheetsProcessed = 0;
         while (sheetsProcessed < numSheets) {
             let offset = sheetsProcessed * perSheet;
@@ -731,19 +732,18 @@ console.log('layout sheetInit = %d', sheetInit);
                         for (let x = 0 ; x < numAcross ; x++) {
                             if (x % 2 == 1) {
                                 if (side == 0) {
-                                    pageOrder.push(sheetInit + x - 1 + y * 9999);  //fixme
+                                    pageOrder.push(sheetInit + x - 1 + y * perRowStack);
                                 } else {
-                                    ////pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 - x - 2 + y * 9999);  //fixme
-                                    pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 + x - 1 - numAcross + y * 9999);  //fixme
+                                    pageOrder.push(sheetInit + (signatureSheets - sig) * numAcross * numDown * 2 + x - 1 - numAcross - y * perRowStack);
                                 }
                             } else {
                                 if (side == 0) {
-                                    pageOrder.push(sheetInit + (signatureSheets - sig * 1) * numAcross * 2 - x - 1 + y * 9999);  //fixme
+                                    pageOrder.push(sheetInit + (signatureSheets - sig) * numAcross * numDown * 2 - x + 1 - numAcross - y * perRowStack);
                                 } else {
-                                    pageOrder.push(sheetInit + (numAcross - 1) - x + y * 9999);  //fixme
+                                    pageOrder.push(sheetInit + (numAcross - 1) - x + y * perRowStack);
                                 }
                             }
-console.log('>> layout pushed %s', pageOrder[pageOrder.length-1]);
+console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
                         }
                     }
                 }
