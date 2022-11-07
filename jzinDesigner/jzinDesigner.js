@@ -713,9 +713,52 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         numAcross = numAcross || 1;
         numDown = numDown || 1;
         signatureSheets = signatureSheets || 0;
-        let pageOrder = [];
+
         let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
-        let numPages = previewDoc.document.pages.length;
+
+        let pageOrder = this.getPageOrder(numAcross, numDown, signatureSheets, previewDoc.document.pages.length);
+console.log('>>>>>> pageOrder=%o', pageOrder);
+
+        this.pdfDoc = jzinDesigner.cloneObject(previewDoc);
+        this.pdfDoc.document.layout = {paperSize: paperSize};
+        this.pdfDoc.document.pages = [];
+        let poffset = 0;
+        let partW = paperSize[0] / numAcross;
+        let partH = paperSize[1] / numDown;
+        while (poffset < pageOrder.length) {
+            let page = {size: [0, 0, paperSize[0], paperSize[1]], elements: []};
+            for (let y = 0 ; y < numDown ; y++) {
+                for (let x = 0 ; x < numAcross ; x++) {
+                    let pnum = pageOrder[poffset];
+                    console.log('>>> (%d,%d) poffset=%d pnum=%d', x, y, poffset, pnum);
+                    if (pnum >= previewDoc.document.pages.length) {
+                        console.info('skipping x=%d, y=%d, pnum=%d due to no source page', x, y, pnum);
+                        continue;
+                    }
+                    let pw = previewDoc.document.pages[pnum].size[2] - previewDoc.document.pages[pnum].size[0];
+                    let ph = previewDoc.document.pages[pnum].size[3] - previewDoc.document.pages[pnum].size[1];
+                    if (pw > partW) console.warn('placed page pw=%d > partW=%d', pw, partW);
+                    if (ph > partH) console.warn('placed page ph=%d > partH=%d', ph, partH);
+                    let dx = (partW - pw) / 2;
+                    let dy = (partH - ph) / 2;
+                    let offsetX = partW * x + dx;
+                    let offsetY = partH * (numDown - y - 1) + dy;
+                    for (let elNum = 0 ; elNum < previewDoc.document.pages[pnum].elements.length ; elNum++) {
+                        let element = jzinDesigner.cloneObject(previewDoc.document.pages[pnum].elements[elNum]);
+                        element.position[0] += offsetX;
+                        element.position[1] += offsetY;
+                        page.elements.push(element);
+                    }
+                    poffset++;
+                }
+            }
+            this.pdfDoc.document.pages.push(page);
+        }
+        return pageOrder;
+    }
+
+    getPageOrder(numAcross, numDown, signatureSheets, numPages) {
+        let pageOrder = [];
         let perSheet = numAcross * numDown * 2;
         let numSheets = Math.ceil(numPages / perSheet);
         if (!signatureSheets) signatureSheets = numSheets;
@@ -752,44 +795,6 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
                 offset += numAcross;
 //pageOrder.push('_');
             }
-        }
-//return previewDoc;
-
-console.log('>>>>>> pageOrder=%o', pageOrder);
-        this.pdfDoc = jzinDesigner.cloneObject(previewDoc);
-        this.pdfDoc.document.layout = {paperSize: paperSize};
-        this.pdfDoc.document.pages = [];
-        let poffset = 0;
-        let partW = paperSize[0] / numAcross;
-        let partH = paperSize[1] / numDown;
-        while (poffset < pageOrder.length) {
-            let page = {size: [0, 0, paperSize[0], paperSize[1]], elements: []};
-            for (let y = 0 ; y < numDown ; y++) {
-                for (let x = 0 ; x < numAcross ; x++) {
-                    let pnum = pageOrder[poffset];
-                    console.log('>>> (%d,%d) poffset=%d pnum=%d', x, y, poffset, pnum);
-                    if (pnum >= previewDoc.document.pages.length) {
-                        console.info('skipping x=%d, y=%d, pnum=%d due to no source page', x, y, pnum);
-                        continue;
-                    }
-                    let pw = previewDoc.document.pages[pnum].size[2] - previewDoc.document.pages[pnum].size[0];
-                    let ph = previewDoc.document.pages[pnum].size[3] - previewDoc.document.pages[pnum].size[1];
-                    if (pw > partW) console.warn('placed page pw=%d > partW=%d', pw, partW);
-                    if (ph > partH) console.warn('placed page ph=%d > partH=%d', ph, partH);
-                    let dx = (partW - pw) / 2;
-                    let dy = (partH - ph) / 2;
-                    let offsetX = partW * x + dx;
-                    let offsetY = partH * (numDown - y - 1) + dy;
-                    for (let elNum = 0 ; elNum < previewDoc.document.pages[pnum].elements.length ; elNum++) {
-                        let element = jzinDesigner.cloneObject(previewDoc.document.pages[pnum].elements[elNum]);
-                        element.position[0] += offsetX;
-                        element.position[1] += offsetY;
-                        page.elements.push(element);
-                    }
-                    poffset++;
-                }
-            }
-            this.pdfDoc.document.pages.push(page);
         }
         return pageOrder;
     }
