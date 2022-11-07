@@ -270,6 +270,9 @@ class jzinDesigner {
 
     initTemplateUI() {
         this.uiEl.innerHTML = '';
+        let title = document.createElement('div');
+        title.innerHTML = '<b>Edit Template</b>';
+        this.uiEl.appendChild(title);
         let tsel = document.createElement('select');
         for (let i = 0 ; i < jzinDesigner.templates.length ; i++) {
             let topt = document.createElement('option');
@@ -303,8 +306,14 @@ class jzinDesigner {
         this.setPageDisplay(this.pageCurrent || 0);
         b = document.createElement('button');
         b.innerHTML = 'Create Document from Template';
-        b.addEventListener('xclick', function(ev) { });
+        b.addEventListener('click', function(ev) { me.createDocFromTemplate(); });
         this.uiEl.appendChild(b);
+    }
+
+    createDocFromTemplate() {
+        this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
+        this.previewPages(this.doc);
+        this.activeTemplate = null;
     }
 
     pageChange(delta) {
@@ -757,7 +766,7 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
         return pageOrder;
     }
 
-    getPageOrder(numAcross, numDown, signatureSheets, numPages) {
+    xgetPageOrder(numAcross, numDown, signatureSheets, numPages) {
         let pageOrder = [];
         let perSheet = numAcross * numDown * 2;
         let numSheets = Math.ceil(numPages / perSheet);
@@ -809,6 +818,91 @@ console.log('????????????? %o', docJson);
             .then((response) => response.json())
             .then((data) => console.log(data));
     }
+
+    // numAcross should be multiple of 2 or things are not good
+    static getPageOrder(numAcross, numDown, signatureSheets, numPages) {
+        numAcross = numAcross || 2;
+        numDown = numDown || 1;
+        signatureSheets = signatureSheets || 0;
+        let perSheet = numAcross * numDown * 2;
+        let numSheets = Math.ceil(numPages / perSheet);
+
+        // if we have signtures, we need numPages divisible by this
+        console.info('BEFORE: numPages=%d perSheet=%d numSheets=%d signatureSheets=%d', numPages, perSheet, numSheets, signatureSheets);
+        if (signatureSheets) {
+            numSheets = Math.ceil(numSheets / signatureSheets) * signatureSheets;
+            numPages = perSheet * numSheets;
+        } else {
+            signatureSheets = numSheets;
+            numPages = numSheets * perSheet;
+        }
+        console.info('AFTER:  numPages=%d perSheet=%d numSheets=%d signatureSheets=%d', numPages, perSheet, numSheets, signatureSheets);
+console.log('??????? %d', numPages/(numAcross*numDown));
+
+        //let delta = numAcross * numDown;
+        let delta = numSheets * 2;
+        let max = numPages - 1;
+        for (let bundle = 0 ; bundle < (numSheets / signatureSheets) ; bundle++) {
+            let ranges = [];
+            for (let y = 0 ; y < numDown ; y++) {
+                let row = [];
+                for (let x = 0 ; x < (numAcross / 2) ; x++) {
+                    //bundle * 
+                    let start = x * delta + y * delta * numAcross / 2;
+                    let end = max - start;
+                    row.unshift(end);
+                    row.unshift(start);
+console.log('(%d,%d) start=%d end=%d row=%o', x, y, start, end, row);
+                }
+                ranges = ranges.concat(row);
+            }
+            console.warn('bundle %d: %o', bundle, ranges);
+console.log(jzinDesigner.bookletteCluster(ranges, signatureSheets, numAcross));
+        }
+    }
+
+    static booklette(start, end, sheets) {
+        let ord = [];
+        for (let sh = 0 ; sh < sheets ; sh++) {
+            for (let side = 0 ; side < 2 ; side++) {
+                if (side) {
+                    ord.push(start + sh * 2 + 1);
+                    ord.push(end - sh * 2 - 1);
+                } else {
+                    ord.push(end - sh * 2);
+                    ord.push(start + sh * 2);
+                }
+            }
+        }
+        return ord;
+    }
+
+    // ranges = [start0, end0, ... startN, endN]
+    static bookletteCluster(ranges, sheets, numAcross) {
+        let numDown = ranges.length / numAcross;
+        let ords = [];
+        for (let r = 0 ; r < ranges.length ; r += 2) {
+            ords.push(jzinDesigner.booklette(ranges[r], ranges[r+1], sheets));
+console.log('>>>>> %o', ords[ords.length-1]);
+        }
+        let clustOrd = [];
+console.log('<<<<< %o', ords);
+        for (let i = 0 ; i < ords[0].length ; i += 2) {
+            //if (i / 2 % 2 == 0) {
+            //for (let o = 0 ; o < ords.length ; o++) {
+            for (let y = 0 ; y < numDown ; y++) {
+                for (let x = 0 ; x < (numAcross / 2) ; x++) {
+                    let o = y * numAcross / 2 + x;
+                    if (i / 2 % 2 == 1) o = y * numAcross / 2 + (numAcross / 2 - x) - 1;
+console.log('--- i=%d side=%d o=%d (%d,%d) %o', i, o, numAcross/2-x-1, x,y, ords[o]);
+                    clustOrd.push(ords[o][i]);
+                    clustOrd.push(ords[o][i+1]);
+                }
+            }
+        }
+        return clustOrd;
+    }
+
 
     static cloneObject(obj) {
         return JSON.parse(JSON.stringify(obj));
