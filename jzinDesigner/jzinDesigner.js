@@ -327,12 +327,21 @@ class jzinDesigner {
 
         this.uiEl.appendChild(document.createElement('hr'));
         let b = document.createElement('button');
-        b.innerHTML = this.text('Insert title pages');
-        b.addEventListener('click', function(ev) { me.insertTitlePages(); });
+        b.innerHTML = this.text('Insert cover pages');
+        b.addEventListener('click', function(ev) {
+            me.insertCoverPages();
+            me.refreshAndGo(1);
+            ev.stopPropagation();
+        });
         this.uiEl.appendChild(b);
         b = document.createElement('button');
         b.innerHTML = this.text('Insert index pages');
-        b.addEventListener('click', function(ev) { me.insertTitlePages(); });
+        b.addEventListener('click', function(ev) {
+            me.insertIndexPages();
+            me.reindex();
+            me.refreshAndGo(me.doc.document.pages.length - 1);
+            ev.stopPropagation();
+        });
         this.uiEl.appendChild(b);
 
         this.uiEl.appendChild(document.createElement('hr'));
@@ -350,17 +359,27 @@ class jzinDesigner {
         r = document.createElement('select');
         r.innerHTML = '<option value="0">' + this.text('Insert before this page') + '</option>' +
             '<option value="1">' + this.text('Insert after this page') + '</option>';
-        r.id = 'jzd-insert-before-after';
+        r.classList.add('jzd-insert-before-after');
         this.uiEl.appendChild(r);
 
         b = document.createElement('button');
         b.innerHTML = this.text('Insert blank page');
-        b.addEventListener('click', function(ev) { me.x(); });
+        b.addEventListener('click', function(ev) {
+            let delta = parseInt(me.uiEl.getElementsByClassName('jzd-insert-before-after')[0].value);
+            me.insertBlankPage(me.pageCurrent + delta);
+            me.refreshAndGo(me.pageCurrent + delta);
+            ev.stopPropagation();
+        });
         this.uiEl.appendChild(b);
 
         b = document.createElement('button');
         b.innerHTML = this.text('Insert chapter page');
-        b.addEventListener('click', function(ev) { me.x(); });
+        b.addEventListener('click', function(ev) {
+            let delta = parseInt(me.uiEl.getElementsByClassName('jzd-insert-before-after')[0].value);
+            me.insertChapterPage(me.pageCurrent + delta);
+            me.refreshAndGo(me.pageCurrent + delta);
+            ev.stopPropagation();
+        });
         this.uiEl.appendChild(b);
 
         this.uiEl.appendChild(document.createElement('hr'));
@@ -388,6 +407,115 @@ class jzinDesigner {
         this.initDocUI();
         this.pageCurrent = null;
         this.pageGo(0);
+        this.previewActivate(0);
+    }
+
+
+    defaultFont() {
+        // FIXME
+        return jzinDesigner.fonts[0].name + ' regular';
+    }
+
+    newPageSize(pnum) {
+        //FIXME what should size use?
+        return this.doc.document.pages[pnum || 0].size;
+    }
+
+    insertBlankPage(offset) {
+        this.doc.document.pages.splice(offset, 0, {
+            size: this.newPageSize(offset),
+            elements: []
+        });
+    }
+
+    insertChapterPage(offset) {
+        let size = this.newPageSize(offset);
+        this.doc.document.pages.splice(offset, 0, {
+            size: size,
+            type: 'chapter',
+            elements: [{
+                chapterRef: true,
+                elementType: 'text',
+                fontSize: 40,
+                font: this.defaultFont(),
+                options: {align: 'center'},
+                position: [0, (size[2] - size[0]) / 2],
+                height: 45,
+                width: size[3] - size[1],
+                text: this.text('Chapter Title')
+            }]
+        });
+    }
+
+    insertCoverPages() {
+        let size = this.newPageSize();
+        this.doc.document.pages.splice(0, 0,
+            {
+                size: size,
+                type: 'cover-back',
+                elements: []
+            },
+            {
+                size: size,
+                type: 'cover-front',
+                elements: [{
+                    elementType: 'text',
+                    fontSize: 50,
+                    font: this.defaultFont(),
+                    options: {align: 'center'},
+                    position: [0, (size[2] - size[0]) / 2],
+                    height: 55,
+                    width: size[3] - size[1],
+                    text: this.text('Cover Page')
+                }]
+            },
+            {
+                size: size,
+                type: 'cover-front-inside',
+                elements: [{
+                    elementType: 'text',
+                    fontSize: 10,
+                    font: this.defaultFont(),
+                    position: [20, 60],
+                    height: 13,
+                    width: (size[3] - size[1]) / 2,
+                    text: this.text('Created with: ') + 'https://jzin.org/'
+                }]
+            },
+            {
+                size: size,
+                type: 'cover-back-inside',
+                elements: []
+            },
+        );
+    }
+
+    insertIndexPages() {
+        let offset = this.doc.document.pages.length;
+        this.doc.document.pages.splice(offset, 0, {
+            type: 'index',
+            size: this.newPageSize(),
+            indexTemplate: {
+                font: this.defaultFont(),
+                fontSize: 10
+            },
+            elements: []
+        });
+    }
+
+    reindex() {
+        // TODO:
+        // copy indexTemplate
+        // remove all pages of type index
+        // rebuild them, based on indexTemplate
+        console.warn('>>>> RE-INDEX BASED ON indexTemplate');
+    }
+
+    refreshAndGo(pnum) {
+        this.previewPages(this.doc);
+        this.previewScrollTo(pnum);
+        this.pageCurrent = null;
+        this.pageGo(pnum);
     }
 
     pageChange(delta) {
@@ -439,18 +567,38 @@ class jzinDesigner {
         let me = this;
         for (let i = 0 ; i < doc.document.pages.length ; i++) {
             let el = document.createElement('div');
-            el.setAttribute('class', 'jzd-page-preview');
+            el.setAttribute('class', 'jzd-page-preview jzd-page-preview-' + i);
             el.dataset.pagenum = i;
             el.addEventListener('click', function(ev) {
                 ev.stopPropagation();
                 if (me.activeTemplate !== null) return;
                 me.pageGo(this.dataset.pagenum);
+                me.previewActivate(this.dataset.pagenum);
             });
             el.title = 'P.' + i;
             this.previewWrapper.appendChild(el);
             el.style.height = el.clientWidth + 'px';
             this.displayPage(i, el, doc);
         }
+    }
+
+    previewScrollTo(pageNum) {
+        let pgEl = document.getElementsByClassName('jzd-page-preview-' + pageNum)[0];
+        if (!pgEl) return;
+        let pvw = document.getElementsByClassName('jzd-page-preview-wrapper')[0];
+        pvw.scrollTo(0, pgEl.offsetTop);
+        this.previewActivate(pageNum);
+    }
+
+    previewActivate(pageNum) {
+        let pgEl = document.getElementsByClassName('jzd-page-preview-' + pageNum)[0];
+        if (!pgEl) return;
+        let pvw = document.getElementsByClassName('jzd-page-preview-wrapper')[0];
+        let oldCur = pvw.getElementsByClassName('jzd-page-preview-current');
+        for (let i = 0 ; i < oldCur.length ; i++) {
+            oldCur[i].classList.remove('jzd-page-preview-current');
+        }
+        pgEl.classList.add('jzd-page-preview-current');
     }
 
     docFromTemplate(tempDoc, feed) {
@@ -507,6 +655,17 @@ class jzinDesigner {
         let pgw = doc.document.pages[pnum].size[3] - doc.document.pages[pnum].size[1];
         let pgh = doc.document.pages[pnum].size[2] - doc.document.pages[pnum].size[0];
         this.setScale(containerEl, pgw, pgh);
+
+        if (!doc.document.pages[pnum].elements || (doc.document.pages[pnum].elements.length < 1)) {
+            let type = doc.document.pages[pnum].type || null;
+            let msg = this.text('this page is blank');
+            if (type) msg += '<br />[' + this.text(type) + ']';
+            let msgEl = document.createElement('div');
+            msgEl.setAttribute('class', 'jzd-blank-page-message');
+            msgEl.innerHTML = msg;
+            containerEl.appendChild(msgEl);
+            return;
+        }
 
         let me = this;
         for (let i = 0 ; i < doc.document.pages[pnum].elements.length ; i++) {
