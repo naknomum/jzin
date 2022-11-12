@@ -404,10 +404,11 @@ class jzinDesigner {
         b = document.createElement('button');
         b.innerHTML = '- 1';
         b.addEventListener('click', function(ev) {
-            return;
-            // FIXME me.movePage(-1);
+            if (me.pageCurrent < 1) return;
+            me.swapPages(me.pageCurrent, me.pageCurrent - 1);
             me.reindex();
-            me.refreshAndGo(me.pageCurrent + delta);
+            me.pageCurrent = me.pageCurrent - 1;
+            me.refreshAndGo(me.pageCurrent);
             ev.stopPropagation();
         });
         this.uiEl.appendChild(b);
@@ -417,10 +418,11 @@ class jzinDesigner {
         b = document.createElement('button');
         b.innerHTML = '+ 1';
         b.addEventListener('click', function(ev) {
-            return;
-            // FIXME me.movePage(-1);
+            if (me.pageCurrent >= (me.doc.document.pages.length - 1)) return;
+            me.swapPages(me.pageCurrent, me.pageCurrent + 1);
             me.reindex();
-            me.refreshAndGo(me.pageCurrent + delta);
+            me.pageCurrent = me.pageCurrent + 1;
+            me.refreshAndGo(me.pageCurrent);
             ev.stopPropagation();
         });
         this.uiEl.appendChild(b);
@@ -565,8 +567,11 @@ class jzinDesigner {
         this.doc._trash.push(del);
     }
 
-    movePage(from, to) {
-        //TODO implement  :)
+    swapPages(a, b) {
+        if ((a < 0) || (b < 0) || (a == b) || (a >= this.doc.document.pages.length) || (b >= this.doc.document.pages.length)) return;
+        let tmp = jzinDesigner.cloneObject(this.doc.document.pages[a]);
+        this.doc.document.pages[a] = jzinDesigner.cloneObject(this.doc.document.pages[b]);
+        this.doc.document.pages[b] = tmp;
     }
 
     reindex() {
