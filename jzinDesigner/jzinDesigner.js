@@ -340,7 +340,7 @@ class jzinDesigner {
         b.addEventListener('click', function(ev) {
             me.insertIndexPages();
             me.reindex();
-            me.refreshAndGo(me.doc.document.pages.length - 1);
+            me.refreshAndGo(me.numDocPages() - 1);
             ev.stopPropagation();
         });
         this.uiEl.appendChild(b);
@@ -351,7 +351,7 @@ class jzinDesigner {
         b.addEventListener('click', function(ev) {
             me.deletePage(me.pageCurrent);
             me.updateRestoreMenu();
-            if (me.pageCurrent >= me.doc.document.pages.length) me.pageCurrent = me.doc.document.pages.length - 1;
+            if (me.pageCurrent >= me.numDocPages()) me.pageCurrent = me.numDocPages() - 1;
             me.reindex();
             me.refreshAndGo(me.pageCurrent);
             ev.stopPropagation();
@@ -418,7 +418,7 @@ class jzinDesigner {
         b = document.createElement('button');
         b.innerHTML = '+ 1';
         b.addEventListener('click', function(ev) {
-            if (me.pageCurrent >= (me.doc.document.pages.length - 1)) return;
+            if (me.pageCurrent >= (me.numDocPages() - 1)) return;
             me.swapPages(me.pageCurrent, me.pageCurrent + 1);
             me.reindex();
             me.pageCurrent = me.pageCurrent + 1;
@@ -523,7 +523,7 @@ class jzinDesigner {
     }
 
     insertIndexPages() {
-        let offset = this.doc.document.pages.length;
+        let offset = this.numDocPages();
         this.doc.document.pages.splice(offset, 0, {
             type: 'index',
             size: this.newPageSize(),
@@ -550,7 +550,7 @@ class jzinDesigner {
         if (!this.doc._trash || (trashOffset >= this.doc._trash.length)) return;
         let restore = this.doc._trash.splice(trashOffset, 1)[0];
         let target = restore._delPageNum;
-        if (target > this.doc.document.pages.length) target = this.doc.document.pages.length;
+        if (target > this.numDocPages()) target = this.numDocPages();
         delete restore._delPageNum;
         delete restore._delName;
         console.info('restoring trashOffset=%d, target=%d: %o', trashOffset, target, restore);
@@ -559,7 +559,7 @@ class jzinDesigner {
     }
 
     deletePage(pageNum) {
-        if ((pageNum < 0) || (pageNum >= this.doc.document.pages.length)) return;
+        if ((pageNum < 0) || (pageNum >= this.numDocPages())) return;
         if (!this.doc._trash) this.doc._trash = [];
         let del = this.doc.document.pages.splice(pageNum, 1)[0];
         del._delName = this.text('page') + ' ' + pageNum;
@@ -568,7 +568,7 @@ class jzinDesigner {
     }
 
     swapPages(a, b) {
-        if ((a < 0) || (b < 0) || (a == b) || (a >= this.doc.document.pages.length) || (b >= this.doc.document.pages.length)) return;
+        if ((a < 0) || (b < 0) || (a == b) || (a >= this.numDocPages()) || (b >= this.numDocPages())) return;
         let tmp = jzinDesigner.cloneObject(this.doc.document.pages[a]);
         this.doc.document.pages[a] = jzinDesigner.cloneObject(this.doc.document.pages[b]);
         this.doc.document.pages[b] = tmp;
@@ -601,7 +601,7 @@ class jzinDesigner {
 
     pageMax() {
         if (!this.doc || !this.doc.document || !this.doc.document.pages) return 0;
-        if (this.activeTemplate == null) return this.doc.document.pages.length - 1;
+        if (this.activeTemplate == null) return this.numDocPages() - 1;
         return jzinDesigner.templates[this.activeTemplate].document.pages.length - 1;
     }
 
@@ -826,6 +826,10 @@ class jzinDesigner {
 
     docAltered() {
         this.doc.meta._modified = new Date();
+    }
+
+    numDocPages() {
+        return this.doc.document.pages.length;
     }
 
     resetTemplate(tnum) {
