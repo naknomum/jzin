@@ -330,6 +330,7 @@ class jzinDesigner {
         b.innerHTML = this.text('Insert cover pages');
         b.addEventListener('click', function(ev) {
             me.insertCoverPages();
+            me.reindex();
             me.refreshAndGo(1);
             ev.stopPropagation();
         });
@@ -347,13 +348,28 @@ class jzinDesigner {
         this.uiEl.appendChild(document.createElement('hr'));
         b = document.createElement('button');
         b.innerHTML = this.text('Delete this page');
-        b.addEventListener('click', function(ev) { me.deleteCurrentPage(); });
+        b.addEventListener('click', function(ev) {
+            me.deletePage(me.pageCurrent);
+            me.updateRestoreMenu();
+            if (me.pageCurrent >= me.doc.document.pages.length) me.pageCurrent = me.doc.document.pages.length - 1;
+            me.reindex();
+            me.refreshAndGo(me.pageCurrent);
+            ev.stopPropagation();
+        });
         this.uiEl.appendChild(b);
 
         let r = document.createElement('select');
-        r.innerHTML = '<option>' + this.text('restore deleted pages') + '</option>';
-        r.id = 'jzd-restore-deleted';
+        r.addEventListener('change', function(ev) {
+            let rpnum = me.restorePage(parseInt(this.value));
+            me.updateRestoreMenu();
+            me.pageCurrent = rpnum;
+            me.reindex();
+            me.refreshAndGo(me.pageCurrent);
+            ev.stopPropagation();
+        });
+        this._restoreMenu = r;
         this.uiEl.appendChild(r);
+        this.updateRestoreMenu();
 
         this.uiEl.appendChild(document.createElement('hr'));
         r = document.createElement('select');
@@ -367,6 +383,7 @@ class jzinDesigner {
         b.addEventListener('click', function(ev) {
             let delta = parseInt(me.uiEl.getElementsByClassName('jzd-insert-before-after')[0].value);
             me.insertBlankPage(me.pageCurrent + delta);
+            me.reindex();
             me.refreshAndGo(me.pageCurrent + delta);
             ev.stopPropagation();
         });
@@ -377,6 +394,7 @@ class jzinDesigner {
         b.addEventListener('click', function(ev) {
             let delta = parseInt(me.uiEl.getElementsByClassName('jzd-insert-before-after')[0].value);
             me.insertChapterPage(me.pageCurrent + delta);
+            me.reindex();
             me.refreshAndGo(me.pageCurrent + delta);
             ev.stopPropagation();
         });
@@ -385,14 +403,26 @@ class jzinDesigner {
         this.uiEl.appendChild(document.createElement('hr'));
         b = document.createElement('button');
         b.innerHTML = '- 1';
-        b.addEventListener('click', function(ev) { me.movePage(-1); });
+        b.addEventListener('click', function(ev) {
+            return;
+            // FIXME me.movePage(-1);
+            me.reindex();
+            me.refreshAndGo(me.pageCurrent + delta);
+            ev.stopPropagation();
+        });
         this.uiEl.appendChild(b);
         let m = document.createElement('span');
         m.innerHTML = this.text('Move this page');
         this.uiEl.appendChild(m);
         b = document.createElement('button');
         b.innerHTML = '+ 1';
-        b.addEventListener('click', function(ev) { me.movePage(1); });
+        b.addEventListener('click', function(ev) {
+            return;
+            // FIXME me.movePage(-1);
+            me.reindex();
+            me.refreshAndGo(me.pageCurrent + delta);
+            ev.stopPropagation();
+        });
         this.uiEl.appendChild(b);
     }
 
@@ -503,7 +533,44 @@ class jzinDesigner {
         });
     }
 
+    updateRestoreMenu() {
+        this._restoreMenu.innerHTML = '<option>' + this.text('restore deleted pages') + '</option>';
+        if (!this.doc._trash || !this.doc._trash.length) return;
+        for (let i = 0 ; i < this.doc._trash.length ; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerHTML = this.doc._trash[i]._delName;
+            this._restoreMenu.appendChild(opt);
+        }
+    }
+
+    restorePage(trashOffset) {
+        if (!this.doc._trash || (trashOffset >= this.doc._trash.length)) return;
+        let restore = this.doc._trash.splice(trashOffset, 1)[0];
+        let target = restore._delPageNum;
+        if (target > this.doc.document.pages.length) target = this.doc.document.pages.length;
+        delete restore._delPageNum;
+        delete restore._delName;
+        console.info('restoring trashOffset=%d, target=%d: %o', trashOffset, target, restore);
+        this.doc.document.pages.splice(target, 0, restore);
+        return target;
+    }
+
+    deletePage(pageNum) {
+        if ((pageNum < 0) || (pageNum >= this.doc.document.pages.length)) return;
+        if (!this.doc._trash) this.doc._trash = [];
+        let del = this.doc.document.pages.splice(pageNum, 1)[0];
+        del._delName = this.text('page') + ' ' + pageNum;
+        del._delPageNum = pageNum;
+        this.doc._trash.push(del);
+    }
+
+    movePage(from, to) {
+        //TODO implement  :)
+    }
+
     reindex() {
+        //  SHOULD ALSO DO TABLE OF CONTENTS
         // TODO:
         // copy indexTemplate
         // remove all pages of type index
