@@ -164,6 +164,10 @@ class jzinDesigner {
         this.initUI();
     }
 
+    text(str, lang, sub) {
+        return jzinDesigner.text(str, lang, sub);
+    }
+
     initUI() {
         if (jzinDesigner.templates.length < jzinDesigner.numTemplates) return;
         for (let i = 0 ; i < jzinDesigner.templates.length ; i++) {
@@ -269,9 +273,11 @@ class jzinDesigner {
     }
 
     initTemplateUI() {
+        this.el.classList.add('jzd-mode-template');
+        this.el.classList.remove('jzd-mode-document');
         this.uiEl.innerHTML = '';
         let title = document.createElement('div');
-        title.innerHTML = '<b>Edit Template</b>';
+        title.innerHTML = '<b>' + this.text('Edit Template') + '</b>';
         this.uiEl.appendChild(title);
         let tsel = document.createElement('select');
         for (let i = 0 ; i < jzinDesigner.templates.length ; i++) {
@@ -305,15 +311,83 @@ class jzinDesigner {
         this.uiEl.appendChild(bwrapper);
         this.setPageDisplay(this.pageCurrent || 0);
         b = document.createElement('button');
-        b.innerHTML = 'Create Document from Template';
+        b.innerHTML = this.text('Create Document from Template');
         b.addEventListener('click', function(ev) { me.createDocFromTemplate(); });
+        this.uiEl.appendChild(b);
+    }
+
+    initDocUI() {
+        this.el.classList.add('jzd-mode-document');
+        this.el.classList.remove('jzd-mode-template');
+        this.uiEl.innerHTML = '';
+        let title = document.createElement('div');
+        title.innerHTML = '<b>' + this.text('Edit Document') + '</b> <p>' + this.text('Editing page') + ' <span class="jzd-page-current">0</span></p>';
+        this.uiEl.appendChild(title);
+        let me = this;
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        let b = document.createElement('button');
+        b.innerHTML = this.text('Insert title pages');
+        b.addEventListener('click', function(ev) { me.insertTitlePages(); });
+        this.uiEl.appendChild(b);
+        b = document.createElement('button');
+        b.innerHTML = this.text('Insert index pages');
+        b.addEventListener('click', function(ev) { me.insertTitlePages(); });
+        this.uiEl.appendChild(b);
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        b = document.createElement('button');
+        b.innerHTML = this.text('Delete this page');
+        b.addEventListener('click', function(ev) { me.deleteCurrentPage(); });
+        this.uiEl.appendChild(b);
+
+        let r = document.createElement('select');
+        r.innerHTML = '<option>' + this.text('restore deleted pages') + '</option>';
+        r.id = 'jzd-restore-deleted';
+        this.uiEl.appendChild(r);
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        r = document.createElement('select');
+        r.innerHTML = '<option value="0">' + this.text('Insert before this page') + '</option>' +
+            '<option value="1">' + this.text('Insert after this page') + '</option>';
+        r.id = 'jzd-insert-before-after';
+        this.uiEl.appendChild(r);
+
+        b = document.createElement('button');
+        b.innerHTML = this.text('Insert blank page');
+        b.addEventListener('click', function(ev) { me.x(); });
+        this.uiEl.appendChild(b);
+
+        b = document.createElement('button');
+        b.innerHTML = this.text('Insert chapter page');
+        b.addEventListener('click', function(ev) { me.x(); });
+        this.uiEl.appendChild(b);
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        b = document.createElement('button');
+        b.innerHTML = '- 1';
+        b.addEventListener('click', function(ev) { me.movePage(-1); });
+        this.uiEl.appendChild(b);
+        let m = document.createElement('span');
+        m.innerHTML = this.text('Move this page');
+        this.uiEl.appendChild(m);
+        b = document.createElement('button');
+        b.innerHTML = '+ 1';
+        b.addEventListener('click', function(ev) { me.movePage(1); });
         this.uiEl.appendChild(b);
     }
 
     createDocFromTemplate() {
         this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
+        // TODO do we copy template? reference template?  etc
+        this.doc.meta._created = new Date();
+        this.doc.meta._modified = new Date();
+        this.doc.meta.title = 'REAL TITLE GOES HERE';
         this.previewPages(this.doc);
         this.activeTemplate = null;
+        this.initDocUI();
+        this.pageCurrent = null;
+        this.pageGo(0);
     }
 
     pageChange(delta) {
@@ -332,6 +406,7 @@ class jzinDesigner {
     }
 
     pageGo(pnum) {
+        pnum = parseInt(pnum);
         if (pnum == this.pageCurrent) return;
         this.pageCurrent = pnum;
         this.resetPageBackdrop();
@@ -361,9 +436,16 @@ class jzinDesigner {
 
     previewPages(doc) {
         this.previewWrapper.innerHTML = '';
+        let me = this;
         for (let i = 0 ; i < doc.document.pages.length ; i++) {
             let el = document.createElement('div');
             el.setAttribute('class', 'jzd-page-preview');
+            el.dataset.pagenum = i;
+            el.addEventListener('click', function(ev) {
+                ev.stopPropagation();
+                if (me.activeTemplate !== null) return;
+                me.pageGo(this.dataset.pagenum);
+            });
             el.title = 'P.' + i;
             this.previewWrapper.appendChild(el);
             el.style.height = el.clientWidth + 'px';
@@ -500,13 +582,19 @@ class jzinDesigner {
             this.previewPages(previewDoc);
             this.templateAltered(this.activeTemplate);
         } else {
-            console.warn('NEED TO PREVIEW ETC');
+            this.previewPages(this.doc);
+            this.docAltered();
+            //console.warn('NEED TO PREVIEW ETC');
         }
     }
 
     templateAltered(tnum) {
         jzinDesigner.templates[tnum].meta._modified = new Date();
         localStorage.setItem('template' + tnum, JSON.stringify(jzinDesigner.templates[tnum]));
+    }
+
+    docAltered() {
+        this.doc.meta._modified = new Date();
     }
 
     resetTemplate(tnum) {
@@ -840,8 +928,11 @@ console.log('????????????? %o', docJson);
 console.log('??????? %d', numPages/(numAcross*numDown));
 
         //let delta = numAcross * numDown;
+        //let delta = signatureSheets * 2;
         let delta = numSheets * 2;
-        let max = numPages - 1;
+        //let max = numPages - 1;
+        let max = signatureSheets * 4 - 1;
+console.log('MAX %d, delta %d', max, delta);
         for (let bundle = 0 ; bundle < (numSheets / signatureSheets) ; bundle++) {
             let ranges = [];
             for (let y = 0 ; y < numDown ; y++) {
@@ -912,6 +1003,17 @@ console.log('--- i=%d side=%d o=%d (%d,%d) %o', i, o, numAcross/2-x-1, x,y, ords
         return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
             (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
         );
+    }
+
+    static text(str, lang, sub) {
+        sub = sub || {};
+        lang = lang || 'en-us';
+        // FIXME do real lookup
+        const regex = /{(\w+)}/;
+        while (regex.test(str)) {
+            str = str.replace(regex, sub[RegExp.$1]);
+        }
+        return str;
     }
 }
 
