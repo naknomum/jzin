@@ -28,6 +28,11 @@ class jzinDesigner {
             }
     ];
 
+    static languages = [
+        'en-us',
+        'fr'
+    ];
+
     constructor(el, dataDirUrl) {
         this.el = el;
         this.pageBackdrop = null;
@@ -42,6 +47,7 @@ class jzinDesigner {
     }
 
     init() {
+        this.setLanguageFromBrowser();
         let me = this;
         window.addEventListener('resize', function(ev) {
             clearTimeout(jzinDesigner.resizeTimer);
@@ -77,6 +83,36 @@ class jzinDesigner {
         this.initFonts();
         this.initFeed();
         this.initDoc();
+    }
+
+    setLanguageFromBrowser() {
+        let guess = navigator.language.toLowerCase() || '';
+        let lang = null;
+        let backup = null;
+        for (let i = 0 ; i < jzinDesigner.languages.length ; i++) {
+            if (jzinDesigner.languages[i] == guess) {
+                lang = jzinDesigner.languages[i];
+                console.info('exact language match on %s', lang);
+            } else if (guess.substr(0,2) == jzinDesigner.languages[i].substr(0,2)) {
+                backup = jzinDesigner.languages[i];
+                console.info('backup language match (%s) on %s', guess, backup);
+            }
+        }
+        if (lang) {
+            this.language = lang;
+        } else if (backup) {
+            this.language = backup;
+        } else {
+            this.language = 'en-us';
+        }
+        let me = this;
+        this.readLanguageMap(function(data) { me.languageMap = data; me.initUI(); });
+    }
+
+    readLanguageMap(callback) {
+        fetch('lang/' + this.language + '.json')
+            .then((resp) => resp.json())
+            .then((data) => callback(data));
     }
 
     initTemplates() {
@@ -172,7 +208,13 @@ class jzinDesigner {
     }
 
     text(str, lang, sub) {
-        return jzinDesigner.text(str, lang, sub);
+        sub = sub || {};
+        str = this.languageMap[str] || str;
+        const regex = /{(\w+)}/;
+        while (regex.test(str)) {
+            str = str.replace(regex, sub[RegExp.$1]);
+        }
+        return str;
     }
 
     initUI() {
@@ -183,6 +225,7 @@ class jzinDesigner {
         if (!jzinDesigner.fonts) return;
         if (!this.feed) return;
         if (!this.doc) return;
+        if (!this.languageMap) return;
 
         // have everything we need
         this.setUI();
@@ -1330,16 +1373,6 @@ console.log('--- i=%d side=%d o=%d (%d,%d) %o', i, o, numAcross/2-x-1, x,y, ords
         );
     }
 
-    static text(str, lang, sub) {
-        sub = sub || {};
-        lang = lang || 'en-us';
-        // FIXME do real lookup
-        const regex = /{(\w+)}/;
-        while (regex.test(str)) {
-            str = str.replace(regex, sub[RegExp.$1]);
-        }
-        return str;
-    }
 }
 
 
