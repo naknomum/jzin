@@ -82,7 +82,7 @@ class jzinDesigner {
     initTemplates() {
         for (let i = 0 ; i < jzinDesigner.numTemplates ; i++) {
             console.debug('reading template %d', i);
-            let local = JSON.parse(localStorage.getItem('template' + i));
+            let local = jzinDesigner.localStorageGet('template.' + i);
             if (local) {
                 console.info('using localStorage for template %d: %o', i, local);
                 this.gotTemplate(i, local);
@@ -112,7 +112,14 @@ class jzinDesigner {
         this.initUI();
     }
 
+    // TODO: resolve how to fetch remove vs local
     initDoc() {
+        let loc = jzinDesigner.localStorageGet('doc.' + this.dataDirUrl);
+        if (loc) {
+            console.info('using local doc: %s', this.dataDirUrl);
+            this.gotDoc(loc);
+            return;
+        }
         fetch(this.dataDirUrl + '/doc.json')
             .then((resp) => resp.json())
             .then((data) => this.gotDoc(data))
@@ -179,15 +186,19 @@ class jzinDesigner {
 
         // have everything we need
         this.setUI();
-        this.chooseTemplate(0);
     }
 
     setUI(el) {
         if (!el) {
-            if (this.activeTemplate || !this.doc.pages) {
+            if (this.activeTemplate || !(this.doc && this.doc.document && this.doc.document.pages)) {
+                if (this.activeTemplate == null) this.chooseTemplate(0);
                 this.initTemplateUI();
             } else {
                 this.initDocUI();
+                this.pageCurrent = null;
+                this.pageGo(0);
+                this.previewPages(this.doc);
+                this.previewActivate(0);
             }
             return;
         }
@@ -277,7 +288,8 @@ class jzinDesigner {
         this.el.classList.remove('jzd-mode-document');
         this.uiEl.innerHTML = '';
         let title = document.createElement('div');
-        title.innerHTML = '<b>' + this.text('Edit Template') + '</b>';
+        title.setAttribute('class', 'jzd-ui-section-title');
+        title.innerHTML = this.text('Choose and Edit Template');
         this.uiEl.appendChild(title);
         let tsel = document.createElement('select');
         for (let i = 0 ; i < jzinDesigner.templates.length ; i++) {
@@ -288,6 +300,12 @@ class jzinDesigner {
             tsel.appendChild(topt);
         }
         this.uiEl.appendChild(tsel);
+        this.uiEl.appendChild(document.createElement('hr'));
+
+        title = document.createElement('div');
+        title.setAttribute('class', 'jzd-ui-section-title');
+        title.innerHTML = this.text('Pages in template');
+        this.uiEl.appendChild(title);
         let me = this;
         tsel.addEventListener('change', function(ev) { me.chooseTemplate(parseInt(ev.target.value)) });
         this.uiEl.style.zIndex = 1000;
@@ -295,7 +313,7 @@ class jzinDesigner {
         let bwrapper = document.createElement('div');
         bwrapper.style.padding = '4px';
         let b = document.createElement('button');
-        b.innerHTML = '<';
+        b.innerHTML = '&#8592;';
         b.addEventListener('click', function(ev) { me.pageChange(-1); });
         bwrapper.appendChild(b);
         b = document.createElement('div');
@@ -305,10 +323,12 @@ class jzinDesigner {
         b.innerHTML = '-';
         bwrapper.appendChild(b);
         b = document.createElement('button');
-        b.innerHTML = '>';
+        b.innerHTML = '&#8594;';
         b.addEventListener('click', function(ev) { me.pageChange(1); });
         bwrapper.appendChild(b);
         this.uiEl.appendChild(bwrapper);
+        this.uiEl.appendChild(document.createElement('hr'));
+
         this.setPageDisplay(this.pageCurrent || 0);
         b = document.createElement('button');
         b.innerHTML = this.text('Create Document from Template');
@@ -321,8 +341,15 @@ class jzinDesigner {
         this.el.classList.remove('jzd-mode-template');
         this.uiEl.innerHTML = '';
         let title = document.createElement('div');
-        title.innerHTML = '<b>' + this.text('Edit Document') + '</b> <p>' + this.text('Editing page') + ' <span class="jzd-page-current">0</span></p>';
+        title.setAttribute('class', 'jzd-ui-section-title');
+        title.innerHTML = this.text('Edit Document');
         this.uiEl.appendChild(title);
+
+        title = document.createElement('div');
+        title.setAttribute('class', 'jzd-ui-subtitle');
+        title.innerHTML = this.text('Editing page') + ' <span class="jzd-page-current">0</span>';
+        this.uiEl.appendChild(title);
+
         let me = this;
 
         this.uiEl.appendChild(document.createElement('hr'));
@@ -330,7 +357,8 @@ class jzinDesigner {
         b.innerHTML = this.text('Insert cover pages');
         b.addEventListener('click', function(ev) {
             me.insertCoverPages();
-            me.reindex();
+            me.repaginate();
+            me.docAltered();
             me.refreshAndGo(1);
             ev.stopPropagation();
         });
@@ -339,7 +367,8 @@ class jzinDesigner {
         b.innerHTML = this.text('Insert index pages');
         b.addEventListener('click', function(ev) {
             me.insertIndexPages();
-            me.reindex();
+            me.repaginate();
+            me.docAltered();
             me.refreshAndGo(me.numDocPages() - 1);
             ev.stopPropagation();
         });
@@ -352,7 +381,8 @@ class jzinDesigner {
             me.deletePage(me.pageCurrent);
             me.updateRestoreMenu();
             if (me.pageCurrent >= me.numDocPages()) me.pageCurrent = me.numDocPages() - 1;
-            me.reindex();
+            me.repaginate();
+            me.docAltered();
             me.refreshAndGo(me.pageCurrent);
             ev.stopPropagation();
         });
@@ -363,7 +393,8 @@ class jzinDesigner {
             let rpnum = me.restorePage(parseInt(this.value));
             me.updateRestoreMenu();
             me.pageCurrent = rpnum;
-            me.reindex();
+            me.repaginate();
+            me.docAltered();
             me.refreshAndGo(me.pageCurrent);
             ev.stopPropagation();
         });
@@ -383,7 +414,8 @@ class jzinDesigner {
         b.addEventListener('click', function(ev) {
             let delta = parseInt(me.uiEl.getElementsByClassName('jzd-insert-before-after')[0].value);
             me.insertBlankPage(me.pageCurrent + delta);
-            me.reindex();
+            me.repaginate();
+            me.docAltered();
             me.refreshAndGo(me.pageCurrent + delta);
             ev.stopPropagation();
         });
@@ -394,7 +426,8 @@ class jzinDesigner {
         b.addEventListener('click', function(ev) {
             let delta = parseInt(me.uiEl.getElementsByClassName('jzd-insert-before-after')[0].value);
             me.insertChapterPage(me.pageCurrent + delta);
-            me.reindex();
+            me.repaginate();
+            me.docAltered();
             me.refreshAndGo(me.pageCurrent + delta);
             ev.stopPropagation();
         });
@@ -402,11 +435,12 @@ class jzinDesigner {
 
         this.uiEl.appendChild(document.createElement('hr'));
         b = document.createElement('button');
-        b.innerHTML = '- 1';
+        b.innerHTML = '&#8593;';
         b.addEventListener('click', function(ev) {
             if (me.pageCurrent < 1) return;
             me.swapPages(me.pageCurrent, me.pageCurrent - 1);
-            me.reindex();
+            me.repaginate();
+            me.docAltered();
             me.pageCurrent = me.pageCurrent - 1;
             me.refreshAndGo(me.pageCurrent);
             ev.stopPropagation();
@@ -416,11 +450,12 @@ class jzinDesigner {
         m.innerHTML = this.text('Move this page');
         this.uiEl.appendChild(m);
         b = document.createElement('button');
-        b.innerHTML = '+ 1';
+        b.innerHTML = '&#8595;';
         b.addEventListener('click', function(ev) {
             if (me.pageCurrent >= (me.numDocPages() - 1)) return;
             me.swapPages(me.pageCurrent, me.pageCurrent + 1);
-            me.reindex();
+            me.repaginate();
+            me.docAltered();
             me.pageCurrent = me.pageCurrent + 1;
             me.refreshAndGo(me.pageCurrent);
             ev.stopPropagation();
@@ -432,8 +467,9 @@ class jzinDesigner {
         this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
         // TODO do we copy template? reference template?  etc
         this.doc.meta._created = new Date();
-        this.doc.meta._modified = new Date();
         this.doc.meta.title = 'REAL TITLE GOES HERE';
+        this.doc.meta.dataDirUrl = this.dataDirUrl;
+        this.docAltered();  // will save
         this.previewPages(this.doc);
         this.activeTemplate = null;
         this.initDocUI();
@@ -484,11 +520,13 @@ class jzinDesigner {
         this.doc.document.pages.splice(0, 0,
             {
                 size: size,
+                excludeFromPagination: true,
                 type: 'cover-back',
                 elements: []
             },
             {
                 size: size,
+                excludeFromPagination: true,
                 type: 'cover-front',
                 elements: [{
                     elementType: 'text',
@@ -503,6 +541,7 @@ class jzinDesigner {
             },
             {
                 size: size,
+                excludeFromPagination: true,
                 type: 'cover-front-inside',
                 elements: [{
                     elementType: 'text',
@@ -516,6 +555,7 @@ class jzinDesigner {
             },
             {
                 size: size,
+                excludeFromPagination: true,
                 type: 'cover-back-inside',
                 elements: []
             },
@@ -527,6 +567,7 @@ class jzinDesigner {
         this.doc.document.pages.splice(offset, 0, {
             type: 'index',
             size: this.newPageSize(),
+            excludeFromPagination: true,  // might be unnecessary, as this will get expanded into index pages (which *should* have this)
             indexTemplate: {
                 font: this.defaultFont(),
                 fontSize: 10
@@ -574,13 +615,27 @@ class jzinDesigner {
         this.doc.document.pages[b] = tmp;
     }
 
+    //this will do all the things necessary on the document when pages (ordering, etc) changes
+    repaginate() {
+        this.reTOC();
+        this.reindex();
+        this.rePageNumber();
+    }
+
     reindex() {
-        //  SHOULD ALSO DO TABLE OF CONTENTS
         // TODO:
         // copy indexTemplate
         // remove all pages of type index
         // rebuild them, based on indexTemplate
         console.warn('>>>> RE-INDEX BASED ON indexTemplate');
+    }
+
+    reTOC() {
+        console.warn('TODO: reTOC()');
+    }
+
+    rePageNumber() {
+        console.warn('TODO: rePageNumber()');
     }
 
     refreshAndGo(pnum) {
@@ -814,26 +869,46 @@ class jzinDesigner {
             this.templateAltered(this.activeTemplate);
         } else {
             this.previewPages(this.doc);
+            this.previewScrollTo(this.pageCurrent);
             this.docAltered();
-            //console.warn('NEED TO PREVIEW ETC');
         }
-    }
-
-    templateAltered(tnum) {
-        jzinDesigner.templates[tnum].meta._modified = new Date();
-        localStorage.setItem('template' + tnum, JSON.stringify(jzinDesigner.templates[tnum]));
-    }
-
-    docAltered() {
-        this.doc.meta._modified = new Date();
     }
 
     numDocPages() {
         return this.doc.document.pages.length;
     }
 
+    templateAltered(tnum) {
+        jzinDesigner.templates[tnum].meta._modified = new Date();
+        jzinDesigner.localStorageSet('template.' + tnum, jzinDesigner.templates[tnum]);
+    }
+
+    docAltered() {
+        this.doc.meta._modified = new Date();
+        this.save();
+    }
+
+    save() {
+        if (!this.doc.meta.dataDirUrl) return;
+        this.doc.meta._saved = new Date();
+        console.info('saving %s at %s', this.doc.meta.dataDirUrl, this.doc.meta._saved);
+        jzinDesigner.localStorageSet('doc.' + this.doc.meta.dataDirUrl, this.doc);
+        //TODO
+        //this.doc.meta._savedRemote = new Date();
+        //this.saveRemote()
+    }
+
     resetTemplate(tnum) {
-        localStorage.removeItem('template' + tnum);
+        jzinDesigner.localStorageRemove('template.' + tnum);
+    }
+    resetAllTemplates() {
+        for (let key in localStorage) {
+            if (!key.startsWith('template.')) continue;
+            jzinDesigner.localStorageRemove(key);
+        }
+    }
+    clearLocalStorageDocument() {
+        jzinDesigner.localStorageRemove('doc.' + this.doc.meta.dataDirUrl);
     }
 
     elementClicked(ev) {
@@ -1229,6 +1304,21 @@ console.log('--- i=%d side=%d o=%d (%d,%d) %o', i, o, numAcross/2-x-1, x,y, ords
         return clustOrd;
     }
 
+
+    static localStorageGet(key) {
+        let ls = localStorage.getItem(key);
+        if (!ls) return null;
+        return JSON.parse(ls);
+    }
+
+    static localStorageSet(key, obj) {
+        obj._localStored = new Date();
+        localStorage.setItem(key, JSON.stringify(obj));
+    }
+    static localStorageRemove(key) {
+        console.warn('localStorage removing: %s', key);
+        localStorage.removeItem(key);
+    }
 
     static cloneObject(obj) {
         return JSON.parse(JSON.stringify(obj));
