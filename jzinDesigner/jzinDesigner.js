@@ -47,6 +47,7 @@ class jzinDesigner {
     }
 
     init() {
+        this.preferences = jzinDesigner.localStorageGet('preferences') || {};
         this.setLanguageFromBrowser();
         let me = this;
         window.addEventListener('resize', function(ev) {
@@ -85,8 +86,13 @@ class jzinDesigner {
         this.initDoc();
     }
 
+    updatePreference(key, value) {
+        this.preferences[key] = value;
+        jzinDesigner.localStorageSet('preferences', this.preferences);
+    }
+
     setLanguageFromBrowser() {
-        let guess = navigator.language.toLowerCase() || '';
+        let guess = this.preferences.language || navigator.language.toLowerCase() || '';
         let lang = null;
         let backup = null;
         for (let i = 0 ; i < jzinDesigner.languages.length ; i++) {
@@ -105,8 +111,17 @@ class jzinDesigner {
         } else {
             this.language = 'en-us';
         }
+        this.updatePreference('language', this.language);
         let me = this;
         this.readLanguageMap(function(data) { me.languageMap = data; me.initUI(); });
+    }
+
+    changeLanguage(lang) {
+        if (jzinDesigner.languages.indexOf(lang) < 0) return;
+        this.language = lang;
+        this.updatePreference('language', lang);
+        let me = this;
+        this.readLanguageMap(function(data) { me.languageMap = data; document.location.reload(); });
     }
 
     readLanguageMap(callback) {
