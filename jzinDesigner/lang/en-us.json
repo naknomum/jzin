@@ -1,0 +1,29 @@
+{
+   "cover-back-inside" : "Inside of back cover",
+   "cover-back" : "Back cover",
+   "cover-front" : "Front cover",
+   "cover-front-inside" : "Inside of front cover",
+
+
+
+   "Choose and Edit Template" : "Choose and Edit Template",
+   "Created with: " : "Created with: ",
+   "this page is blank" : "this page is blank",
+   "Insert index pages" : "Insert index pages",
+   "restore deleted pages" : "restore deleted pages",
+   "Pages in template" : "Pages in template",
+   "page" : "page",
+   "Delete this page" : "Delete this page",
+   "Cover Page" : "Cover Page",
+   "Editing page" : "Editing page",
+   "Insert cover pages" : "Insert cover pages",
+   "Create Document from Template" : "Create Document from Template",
+   "Insert blank page" : "Insert blank page",
+   "Edit Document" : "Edit Document",
+   "Insert chapter page" : "Insert chapter page",
+   "Insert before this page" : "Insert before this page",
+   "_procDate" : "Sun Nov 13 15:52:39 2022",
+   "Chapter Title" : "Chapter Title",
+   "Insert after this page" : "Insert after this page",
+   "Move this page" : "Move this page"
+}
