@@ -377,8 +377,7 @@ class jzinDesigner {
         b = document.createElement('div');
         b.style.margin = '0 8px';
         b.style.display = 'inline-block';
-        b.setAttribute('class', 'jzd-page-current');
-        b.innerHTML = '-';
+        b.innerHTML = this.text('Viewing') + ' ' + '<span class="jzd-page-current">-</span>';
         bwrapper.appendChild(b);
         b = document.createElement('button');
         b.innerHTML = '&#8594;';
@@ -980,7 +979,7 @@ class jzinDesigner {
     }
 
     activateElement(el) {
-console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
+        console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         if ((el == null) && (this.activeElement == null)) return;
         let els = this.el.getElementsByClassName('jzd-element-active');
         for (let i = 0 ; i < els.length ; i++) {
@@ -989,7 +988,22 @@ console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         this.activeElement = el;
         this.setUI(el);
         if (el == null) return;
+        let me = this;
         el.classList.add('jzd-element-active');
+        if (jzd.activeTemplate) return;
+        let ident = el.id.split('.');
+        //console.log('activate ???? pg %o', this.doc.document.pages[ident[0]].elements[ident[1]]);
+        if ((this.doc.document.pages[ident[0]].elements[ident[1]].elementType == 'text') &&
+            !this.doc.document.pages[ident[0]].elements[ident[1]].readOnly) {
+            el.setAttribute('contentEditable', 'true');
+            //el.addEventListener('input', function(ev) {});
+            el.addEventListener('blur', function(ev) {
+                if (me.doc.document.pages[ident[0]].elements[ident[1]].text != this.innerHTML) {
+                    me.doc.document.pages[ident[0]].elements[ident[1]].text = this.innerHTML;
+                    me.elementChanged(this);
+                }
+            });
+        }
     }
 
     addElement(containerEl, elData, depth) {
