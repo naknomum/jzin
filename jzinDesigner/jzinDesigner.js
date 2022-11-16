@@ -440,6 +440,17 @@ class jzinDesigner {
             ev.stopPropagation();
         });
         this.uiEl.appendChild(b);
+        b = document.createElement('button');
+        b.innerHTML = this.text('Toggle page numbers');
+        b.addEventListener('click', function(ev) {
+            me.showPageNumbers = !me.showPageNumbers;
+            if (!me.showPageNumbers) me.removePageNumbers();  // only need to do this when changed
+            me.repaginate();
+            me.docAltered();
+            me.refreshAndGo(me.offsetTOC());
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(b);
 
         this.uiEl.appendChild(document.createElement('hr'));
         b = document.createElement('button');
@@ -815,7 +826,6 @@ safety++; if (safety > 1000) fooooobar();
         }
 
         this.docAltered();
-        //this.refreshAndGo(this.doc.document.pages.length - 1);
         return index;
     }
 
@@ -883,12 +893,58 @@ safety++; if (safety > 1000) fooooobar();
         this.doc.document.pages.splice(offset, 0, tpage);
 
         this.docAltered();
-        //this.refreshAndGo(offset);
         return toc;
     }
 
     rePageNumber() {
-        console.warn('TODO: rePageNumber()');
+        if (!this.showPageNumbers) return;
+        let size = this.newPageSize();
+        let font = this.defaultFont();
+        let fontSize = 10;
+        let indent = 5;
+
+        let elTemplate = {
+            elementType: 'text',
+            pageNumber: true,
+            font: font,
+            fontSize: fontSize,
+            position: [indent, indent],
+            height: fontSize * 1.1,
+            width: (size[2] - size[0]) - 2 * indent
+        };
+
+        let pgNum = 0;
+        for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
+            if (this.doc.document.pages[i].excludeFromPagination || this.doc.document.pages[i].excludePageNumber) continue;
+            pgNum++;
+console.log('pgnum %d', pgNum);
+            let found = false;
+            let align = ((i % 2 == 0) ? 'right' : 'left');
+            // this allows for changing multiple if such a thing would ever be needed?
+            for (let j = 0 ; j < this.doc.document.pages[i].elements.length ; j++) {
+                if (this.doc.document.pages[i].elements[j].pageNumber) {
+                    this.doc.document.pages[i].elements[j].text = pgNum;
+                    this.doc.document.pages[i].elements[j].options = {align: align};
+                    found = i;
+                }
+            }
+            if (!found) {
+                let p = jzinDesigner.cloneObject(elTemplate);
+                p.text = pgNum;
+                p.options = {align: align};
+                this.doc.document.pages[i].elements.push(p);
+            }
+        }
+        this.docAltered();
+    }
+
+    removePageNumbers() {
+        for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
+            // backwards for magic
+            for (let j = this.doc.document.pages[i].elements.length - 1 ; j >= 0 ; j--) {
+                if (this.doc.document.pages[i].elements[j].pageNumber) this.doc.document.pages[i].elements.splice(j, 1);
+            }
+        }
     }
 
     refreshAndGo(pnum) {
@@ -1037,7 +1093,11 @@ safety++; if (safety > 1000) fooooobar();
         let pgh = doc.document.pages[pnum].size[2] - doc.document.pages[pnum].size[0];
         this.setScale(containerEl, pgw, pgh);
 
-        if (!doc.document.pages[pnum].elements || (doc.document.pages[pnum].elements.length < 1)) {
+        let numMajorElements = 0;
+        for (let i = 0 ; i < doc.document.pages[pnum].elements.length ; i++) {
+            if (!doc.document.pages[pnum].elements[i].pageNumber) numMajorElements++;
+        }
+        if (!numMajorElements) {
             let type = doc.document.pages[pnum].type || null;
             let msg = this.text('this page is blank');
             if (type) msg += '<br />[' + this.text(type) + ']';
@@ -1045,7 +1105,6 @@ safety++; if (safety > 1000) fooooobar();
             msgEl.setAttribute('class', 'jzd-blank-page-message');
             msgEl.innerHTML = msg;
             containerEl.appendChild(msgEl);
-            return;
         }
 
         let me = this;
