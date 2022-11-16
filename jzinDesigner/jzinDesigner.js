@@ -739,9 +739,11 @@ class jzinDesigner {
 
     //this will do all the things necessary on the document when pages (ordering, etc) changes
     repaginate() {
+        this.removePaddingPages();
         this.reTOC();
         this.reIndex();
         this.rePageNumber();
+        this.addPaddingPages();
     }
 
     reIndex() {
@@ -1444,6 +1446,40 @@ safety++; if (safety > 1000) fooooobar();
         }
     }
 
+    addPaddingPages(multipleOf) {
+        multipleOf = multipleOf || 8;
+        let paddingNeeded = Math.ceil(this.numDocPages() / multipleOf) * multipleOf - this.numDocPages();
+        let offset = this.offsetIndex();
+        for (let i = 0 ; i < paddingNeeded ; i++) {
+            this.doc.document.pages.splice(offset, 0, {
+                jzdPageType: 'padding',
+                jzdExcludeFromPagination: true,
+                size: this.newPageSize(offset),
+                elements: []
+            });
+        }
+        if (paddingNeeded) this.docAltered();
+        return paddingNeeded;
+    }
+
+    removePaddingPages() {
+        let removed = 0;
+        for (let i = this.numDocPages() - 1 ; i > 0 ; i--) {
+            if (this.doc.document.pages[i].jzdPageType == 'padding') {
+                this.doc.document.pages.splice(i, 1);
+                removed++;
+            }
+        }
+        if (removed) this.docAltered();
+        return removed;
+    }
+
+    //kinda debugging only?
+    printPreview() {
+        this.createPdfDoc([800, 800], 2, 2, 0);
+        this.previewPages(this.pdfDoc);
+    }
+
     //paperSize should be [w,h] in pts
     createPdfDoc(paperSize, numAcross, numDown, signatureSheets) {
         numAcross = numAcross || 1;
@@ -1674,4 +1710,6 @@ console.log('--- i=%d side=%d o=%d (%d,%d) %o', i, o, numAcross/2-x-1, x,y, ords
 
 }
 
+
+//  https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
 
