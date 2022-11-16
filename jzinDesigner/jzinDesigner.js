@@ -559,7 +559,7 @@ class jzinDesigner {
             size: size,
             type: 'chapter',
             elements: [{
-                chapterRef: true,
+                refTOC: true,
                 elementType: 'text',
                 fontSize: 40,
                 font: this.defaultFont(),
@@ -631,6 +631,7 @@ class jzinDesigner {
             },
             elements: []
         });
+        this.repaginate();
     }
 
     updateRestoreMenu() {
@@ -675,16 +676,89 @@ class jzinDesigner {
     //this will do all the things necessary on the document when pages (ordering, etc) changes
     repaginate() {
         this.reTOC();
-        this.reindex();
+        this.reIndex();
         this.rePageNumber();
     }
 
-    reindex() {
-        // TODO:
-        // copy indexTemplate
-        // remove all pages of type index
-        // rebuild them, based on indexTemplate
-        console.warn('>>>> RE-INDEX BASED ON indexTemplate');
+    reIndex() {
+        let indexTemplate = null;
+        let pageSize = null;
+        let i = this.doc.document.pages.length;
+        //iterate backwards so removing index pages wont break things
+        while (i--) {
+            if (this.doc.document.pages[i].type == 'index') {
+                indexTemplate = this.doc.document.pages[i].indexTemplate;
+                pageSize = this.doc.document.pages[i].size;
+                this.doc.document.pages.splice(i, 1);
+            }
+        }
+        if (!indexTemplate) return;  // never added index
+
+        let templatePage = {
+            type: 'index',
+            size: pageSize,
+            excludeFromPagination: true,
+            indexTemplate: indexTemplate,
+            elements: []
+        };
+
+        let pgNum = 0;  //will be 1-indexed (human-readable)
+        let index = {};
+        for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
+            if (this.doc.document.pages[i].excludeFromPagination) continue;
+            pgNum++;
+            for (let el = 0 ; el < this.doc.document.pages[i].elements.length ; el++) {
+                let ref = this.doc.document.pages[i].elements[el].refIndex;
+                if (!ref) continue;
+                if (ref === true) ref = this.doc.document.pages[i].elements[el].text;
+                let refs = ref.split('|');
+                for (let j = 0 ; j < refs.length ; j++) {
+                    if (index[refs[j]] && (index[refs[j]].indexOf(pgNum) > -1)) continue; //already indexed on this page
+                    if (!index[refs[j]]) index[refs[j]] = [];
+                    index[refs[j]].push(pgNum);
+                }
+            }
+        }
+        let words = Object.keys(index);
+        if (!words.length) return; //none to build
+
+        let font = indexTemplate.font || this.defaultFont();
+        let fontSize = indexTemplate.fontSize || 10;
+        let indent = 20;
+        let lineHeight = fontSize * 1.3;
+        let y = (templatePage.size[3] - templatePage.size[1]) - lineHeight - indent;
+
+        words.sort(function(a,b) { return a.toLowerCase().localeCompare(b.toLowerCase()); });
+        let wn = 0;
+let safety = 0;
+        while (wn < words.length) {
+            let ipage = jzinDesigner.cloneObject(templatePage);
+console.log('fooooo y = %o', y);
+safety++; if (safety > 1000) fooooobar();
+            while (y > 0) {
+console.log('wn = %o, y = %o lineHeight=%o, words.length=%o', wn, y, lineHeight, words.length);
+safety++; if (safety > 1000) fooooobar();
+                ipage.elements.push({
+                    elementType: 'text',
+                    font: font,
+                    fontSize: fontSize,
+                    options: {align: 'left'},
+                    text: words[wn] + ': ' + index[words[wn]].join(', '),
+                    position: [indent, y],
+                    height: lineHeight,
+                    width: (templatePage.size[2] - templatePage.size[0]) - 2 * indent
+                });
+                y -= lineHeight;
+                wn++;
+                if (wn >= words.length) y = -1;
+            }
+            this.doc.document.pages.push(ipage);
+            y = (templatePage.size[3] - templatePage.size[1]) - lineHeight - indent;  //reset to top
+        }
+
+        this.docAltered();
+        this.refreshAndGo(this.doc.document.pages.length - 1);
+        return index;
     }
 
     reTOC() {
@@ -796,6 +870,7 @@ class jzinDesigner {
                 let newPage = jzinDesigner.cloneObject(tempDoc.document.pages[pgNum]);
                 for (let i = 0 ; i < newPage.elements.length ; i++) {
                     let field = newPage.elements[i].field;
+                    if (field == 'title') newPage.elements[i].refIndex = true;  //auto-index titles
                     let elType = newPage.elements[i]['elementType'];
                     let itemOffset = newPage.elements[i].itemOffset || 0;
                     if (itemOffset > itemsPerPage) itemsPerPage = itemOffset;
@@ -1395,6 +1470,17 @@ console.log('--- i=%d side=%d o=%d (%d,%d) %o', i, o, numAcross/2-x-1, x,y, ords
     static cloneObject(obj) {
         return JSON.parse(JSON.stringify(obj));
     }
+
+/*  meh...
+    // looks for key=value in any object in tree, returns all objects with match (if any)
+    static findObject(obj, key, value) {
+        if (typeof obj != 'object') return;   // this also lets thru array, cuz ... js
+        if (Array.isArray(obj)) {
+        } else {
+        }
+        return;
+    }
+*/
 
     static uuidv4() {  // h/t https://stackoverflow.com/a/2117523
         return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
