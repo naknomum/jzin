@@ -426,7 +426,17 @@ class jzinDesigner {
             me.insertIndexPages();
             me.repaginate();
             me.docAltered();
-            me.refreshAndGo(me.numDocPages() - 1);
+            me.refreshAndGo(me.offsetIndex() - 1);
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(b);
+        b = document.createElement('button');
+        b.innerHTML = this.text('Insert Table of Contents');
+        b.addEventListener('click', function(ev) {
+            me.insertTOCPages();
+            me.repaginate();
+            me.docAltered();
+            me.refreshAndGo(me.offsetTOC());
             ev.stopPropagation();
         });
         this.uiEl.appendChild(b);
@@ -569,18 +579,17 @@ class jzinDesigner {
                 width: size[3] - size[1],
                 text: this.text('Chapter Title')
             }]
+        },
+        {
+            size: size,
+            type: 'chapter-back',
+            elements: []
         });
     }
 
     insertCoverPages() {
         let size = this.newPageSize();
         this.doc.document.pages.splice(0, 0,
-            {
-                size: size,
-                excludeFromPagination: true,
-                type: 'cover-back',
-                elements: []
-            },
             {
                 size: size,
                 excludeFromPagination: true,
@@ -609,26 +618,70 @@ class jzinDesigner {
                     width: (size[3] - size[1]) / 2,
                     text: this.text('Created with: ') + 'https://jzin.org/'
                 }]
-            },
+            }
+        );
+        this.doc.document.pages.splice(this.doc.document.pages.length, 0,
             {
                 size: size,
                 excludeFromPagination: true,
                 type: 'cover-back-inside',
                 elements: []
             },
+            {
+                size: size,
+                excludeFromPagination: true,
+                type: 'cover-back',
+                elements: []
+            }
         );
     }
 
     insertIndexPages() {
-        let offset = this.numDocPages();
+        let offset = this.offsetIndex();
         this.doc.document.pages.splice(offset, 0, {
             type: 'index',
             size: this.newPageSize(),
-            excludeFromPagination: true,  // might be unnecessary, as this will get expanded into index pages (which *should* have this)
+            excludeFromPagination: true,
             indexTemplate: {
                 font: this.defaultFont(),
                 fontSize: 10
             },
+            elements: []
+        });
+        this.repaginate();
+    }
+
+    offsetIndex() {
+        let offset = this.numDocPages();
+        for (let i = offset - 1 ; i >= 0 ; i--) {
+            if (this.doc.document.pages[i].type == 'cover-back-inside') offset = i;
+        }
+        return offset;
+    }
+
+    offsetTOC() {
+        let offset = 0;
+        for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
+            if (this.doc.document.pages[i].type == 'cover-front-inside') offset = i + 1;
+        }
+        return offset;
+    }
+
+    insertTOCPages() {
+        let offset = this.offsetTOC();
+        this.doc.document.pages.splice(offset, 0, {
+            type: 'toc',
+            size: this.newPageSize(),
+            excludeFromPagination: true,
+            tocTemplate: {
+                font: this.defaultFont(),
+                fontSize: 12
+            },
+            elements: []
+        }, {
+            type: 'toc-back',
+            size: this.newPageSize(),
+            excludeFromPagination: true,
             elements: []
         });
         this.repaginate();
@@ -719,8 +772,12 @@ class jzinDesigner {
                 }
             }
         }
+        let offset = this.offsetIndex();
         let words = Object.keys(index);
-        if (!words.length) return; //none to build
+        if (!words.length) {  // none to build, but we still want our placeholder page
+            this.doc.document.pages.splice(offset, 0, templatePage);
+            return;
+        }
 
         let font = indexTemplate.font || this.defaultFont();
         let fontSize = indexTemplate.fontSize || 10;
@@ -752,17 +809,82 @@ safety++; if (safety > 1000) fooooobar();
                 wn++;
                 if (wn >= words.length) y = -1;
             }
-            this.doc.document.pages.push(ipage);
+            this.doc.document.pages.splice(offset, 0, ipage);
+            offset += 1;
             y = (templatePage.size[3] - templatePage.size[1]) - lineHeight - indent;  //reset to top
         }
 
         this.docAltered();
-        this.refreshAndGo(this.doc.document.pages.length - 1);
+        //this.refreshAndGo(this.doc.document.pages.length - 1);
         return index;
     }
 
     reTOC() {
-        console.warn('TODO: reTOC()');
+        let tocTemplate = null;
+        let pageSize = null;
+        let i = this.doc.document.pages.length;
+        //iterate backwards so removing index pages wont break things
+        while (i--) {
+            if (this.doc.document.pages[i].type == 'toc') {
+                tocTemplate = this.doc.document.pages[i].tocTemplate;
+                pageSize = this.doc.document.pages[i].size;
+                this.doc.document.pages.splice(i, 1);
+            }
+        }
+        if (!tocTemplate) return;  // never added index
+
+        let templatePage = {
+            type: 'toc',
+            size: pageSize,
+            excludeFromPagination: true,
+            tocTemplate: tocTemplate,
+            elements: []
+        };
+
+        let pgNum = 0;  //will be 1-indexed (human-readable)
+        let toc = [];
+        for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
+            if (this.doc.document.pages[i].excludeFromPagination) continue;
+            pgNum++;
+            for (let el = 0 ; el < this.doc.document.pages[i].elements.length ; el++) {
+                let ref = this.doc.document.pages[i].elements[el].refTOC;
+                if (!ref) continue;
+                if (ref === true) ref = this.doc.document.pages[i].elements[el].text;
+                toc.push([ref, pgNum]);
+            }
+        }
+        let offset = this.offsetTOC();
+        if (!toc.length) {  //nothing to create, but keep placeholder
+            this.doc.document.pages.splice(offset, 0, templatePage);
+            return;
+        }
+
+        //FIXME constrain to one page ... i guess?
+        let font = tocTemplate.font || this.defaultFont();
+        let fontSize = tocTemplate.fontSize || 12;
+        let indent = 20;
+        let lineHeight = fontSize * 1.3;
+        let y = (templatePage.size[3] - templatePage.size[1]) - lineHeight - indent;
+
+        let tpage = jzinDesigner.cloneObject(templatePage);
+        for (let i = 0 ; i < toc.length ; i++) {
+            tpage.elements.push({
+                elementType: 'text',
+                font: font,
+                fontSize: fontSize,
+                options: {align: 'left'},
+                text: toc[i][0] + ': ' + toc[i][1],
+                position: [indent, y],
+                height: lineHeight,
+                width: (templatePage.size[2] - templatePage.size[0]) - 2 * indent
+            });
+            y -= lineHeight;
+        }
+        this.doc.document.pages.splice(offset, 0, tpage);
+
+        this.docAltered();
+        //this.refreshAndGo(offset);
+        return toc;
     }
 
     rePageNumber() {
@@ -1000,6 +1122,7 @@ safety++; if (safety > 1000) fooooobar();
             this.previewPages(previewDoc);
             this.templateAltered(this.activeTemplate);
         } else {
+            this.repaginate();
             this.previewPages(this.doc);
             this.previewScrollTo(this.pageCurrent);
             this.docAltered();
@@ -1073,8 +1196,9 @@ safety++; if (safety > 1000) fooooobar();
             el.setAttribute('contentEditable', 'true');
             //el.addEventListener('input', function(ev) {});
             el.addEventListener('blur', function(ev) {
-                if (me.doc.document.pages[ident[0]].elements[ident[1]].text != this.innerHTML) {
-                    me.doc.document.pages[ident[0]].elements[ident[1]].text = this.innerHTML;
+                // we use innerText here cuz we have the corner divs in here too.  :eyeroll:
+                if (me.doc.document.pages[ident[0]].elements[ident[1]].text != this.innerText) {
+                    me.doc.document.pages[ident[0]].elements[ident[1]].text = this.innerText;
                     me.elementChanged(this);
                 }
             });
