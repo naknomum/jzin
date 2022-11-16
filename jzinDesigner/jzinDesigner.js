@@ -1445,17 +1445,15 @@ safety++; if (safety > 1000) fooooobar();
     }
 
     //paperSize should be [w,h] in pts
-    layout(paperSize, numAcross, numDown, signatureSheets) {
+    createPdfDoc(paperSize, numAcross, numDown, signatureSheets) {
         numAcross = numAcross || 1;
         numDown = numDown || 1;
         signatureSheets = signatureSheets || 0;
 
-        let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
-
-        let pageOrder = this.getPageOrder(numAcross, numDown, signatureSheets, previewDoc.document.pages.length);
+        let pageOrder = jzinDesigner.getPageOrder(numAcross, numDown, signatureSheets, this.numDocPages());
 console.log('>>>>>> pageOrder=%o', pageOrder);
 
-        this.pdfDoc = jzinDesigner.cloneObject(previewDoc);
+        this.pdfDoc = jzinDesigner.cloneObject(this.doc);
         this.pdfDoc.document.layout = {paperSize: paperSize};
         this.pdfDoc.document.pages = [];
         let poffset = 0;
@@ -1467,20 +1465,20 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
                 for (let x = 0 ; x < numAcross ; x++) {
                     let pnum = pageOrder[poffset];
                     console.log('>>> (%d,%d) poffset=%d pnum=%d', x, y, poffset, pnum);
-                    if (pnum >= previewDoc.document.pages.length) {
+                    if (pnum >= this.doc.document.pages.length) {
                         console.info('skipping x=%d, y=%d, pnum=%d due to no source page', x, y, pnum);
                         continue;
                     }
-                    let pw = previewDoc.document.pages[pnum].size[2] - previewDoc.document.pages[pnum].size[0];
-                    let ph = previewDoc.document.pages[pnum].size[3] - previewDoc.document.pages[pnum].size[1];
+                    let pw = this.doc.document.pages[pnum].size[2] - this.doc.document.pages[pnum].size[0];
+                    let ph = this.doc.document.pages[pnum].size[3] - this.doc.document.pages[pnum].size[1];
                     if (pw > partW) console.warn('placed page pw=%d > partW=%d', pw, partW);
                     if (ph > partH) console.warn('placed page ph=%d > partH=%d', ph, partH);
                     let dx = (partW - pw) / 2;
                     let dy = (partH - ph) / 2;
                     let offsetX = partW * x + dx;
                     let offsetY = partH * (numDown - y - 1) + dy;
-                    for (let elNum = 0 ; elNum < previewDoc.document.pages[pnum].elements.length ; elNum++) {
-                        let element = jzinDesigner.cloneObject(previewDoc.document.pages[pnum].elements[elNum]);
+                    for (let elNum = 0 ; elNum < this.doc.document.pages[pnum].elements.length ; elNum++) {
+                        let element = jzinDesigner.cloneObject(this.doc.document.pages[pnum].elements[elNum]);
                         element.position[0] += offsetX;
                         element.position[1] += offsetY;
                         page.elements.push(element);
@@ -1548,6 +1546,7 @@ console.log('????????????? %o', docJson);
 
     // numAcross should be multiple of 2 or things are not good
     static getPageOrder(numAcross, numDown, signatureSheets, numPages) {
+        let order = [];
         numAcross = numAcross || 2;
         numDown = numDown || 1;
         signatureSheets = signatureSheets || 0;
@@ -1587,8 +1586,11 @@ console.log('(%d,%d) start=%d end=%d row=%o', x, y, start, end, row);
                 ranges = ranges.concat(row);
             }
             console.warn('bundle %d: %o', bundle, ranges);
-console.log(jzinDesigner.bookletteCluster(ranges, signatureSheets, numAcross));
+            let bclus = jzinDesigner.bookletteCluster(ranges, signatureSheets, numAcross);
+console.log('bclus => %o', bclus);
+            order = order.concat(bclus);
         }
+        return order;
     }
 
     static booklette(start, end, sheets) {
