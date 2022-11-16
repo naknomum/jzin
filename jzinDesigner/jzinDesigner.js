@@ -578,9 +578,9 @@ class jzinDesigner {
         let size = this.newPageSize(offset);
         this.doc.document.pages.splice(offset, 0, {
             size: size,
-            type: 'chapter',
+            jzdPageType: 'chapter',
             elements: [{
-                refTOC: true,
+                jzdRefTOC: true,
                 elementType: 'text',
                 fontSize: 40,
                 font: this.defaultFont(),
@@ -593,7 +593,7 @@ class jzinDesigner {
         },
         {
             size: size,
-            type: 'chapter-back',
+            jzdPageType: 'chapter-back',
             elements: []
         });
     }
@@ -603,8 +603,8 @@ class jzinDesigner {
         this.doc.document.pages.splice(0, 0,
             {
                 size: size,
-                excludeFromPagination: true,
-                type: 'cover-front',
+                jzdExcludeFromPagination: true,
+                jzdPageType: 'cover-front',
                 elements: [{
                     elementType: 'text',
                     fontSize: 50,
@@ -618,8 +618,8 @@ class jzinDesigner {
             },
             {
                 size: size,
-                excludeFromPagination: true,
-                type: 'cover-front-inside',
+                jzdExcludeFromPagination: true,
+                jzdPageType: 'cover-front-inside',
                 elements: [{
                     elementType: 'text',
                     fontSize: 10,
@@ -634,14 +634,14 @@ class jzinDesigner {
         this.doc.document.pages.splice(this.doc.document.pages.length, 0,
             {
                 size: size,
-                excludeFromPagination: true,
-                type: 'cover-back-inside',
+                jzdExcludeFromPagination: true,
+                jzdPageType: 'cover-back-inside',
                 elements: []
             },
             {
                 size: size,
-                excludeFromPagination: true,
-                type: 'cover-back',
+                jzdExcludeFromPagination: true,
+                jzdPageType: 'cover-back',
                 elements: []
             }
         );
@@ -650,13 +650,13 @@ class jzinDesigner {
     insertIndexPages() {
         let offset = this.offsetIndex();
         this.doc.document.pages.splice(offset, 0, {
-            type: 'index',
-            size: this.newPageSize(),
-            excludeFromPagination: true,
-            indexTemplate: {
+            jzdPageType: 'index',
+            jzdExcludeFromPagination: true,
+            jzdIndexTemplate: {
                 font: this.defaultFont(),
                 fontSize: 10
             },
+            size: this.newPageSize(),
             elements: []
         });
         this.repaginate();
@@ -665,7 +665,7 @@ class jzinDesigner {
     offsetIndex() {
         let offset = this.numDocPages();
         for (let i = offset - 1 ; i >= 0 ; i--) {
-            if (this.doc.document.pages[i].type == 'cover-back-inside') offset = i;
+            if (this.doc.document.pages[i].jzdPageType == 'cover-back-inside') offset = i;
         }
         return offset;
     }
@@ -673,7 +673,7 @@ class jzinDesigner {
     offsetTOC() {
         let offset = 0;
         for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
-            if (this.doc.document.pages[i].type == 'cover-front-inside') offset = i + 1;
+            if (this.doc.document.pages[i].jzdPageType == 'cover-front-inside') offset = i + 1;
         }
         return offset;
     }
@@ -681,18 +681,18 @@ class jzinDesigner {
     insertTOCPages() {
         let offset = this.offsetTOC();
         this.doc.document.pages.splice(offset, 0, {
-            type: 'toc',
-            size: this.newPageSize(),
-            excludeFromPagination: true,
-            tocTemplate: {
+            jzdPageType: 'toc',
+            jzdExcludeFromPagination: true,
+            jzdTocTemplate: {
                 font: this.defaultFont(),
                 fontSize: 12
             },
+            size: this.newPageSize(),
             elements: []
         }, {
-            type: 'toc-back',
+            jzdPageType: 'toc-back',
+            jzdExcludeFromPagination: true,
             size: this.newPageSize(),
-            excludeFromPagination: true,
             elements: []
         });
         this.repaginate();
@@ -750,8 +750,8 @@ class jzinDesigner {
         let i = this.doc.document.pages.length;
         //iterate backwards so removing index pages wont break things
         while (i--) {
-            if (this.doc.document.pages[i].type == 'index') {
-                indexTemplate = this.doc.document.pages[i].indexTemplate;
+            if (this.doc.document.pages[i].jzdPageType == 'index') {
+                indexTemplate = this.doc.document.pages[i].jzdIndexTemplate;
                 pageSize = this.doc.document.pages[i].size;
                 this.doc.document.pages.splice(i, 1);
             }
@@ -759,20 +759,20 @@ class jzinDesigner {
         if (!indexTemplate) return;  // never added index
 
         let templatePage = {
-            type: 'index',
+            jzdPageType: 'index',
+            jzdExcludeFromPagination: true,
+            jzdIndexTemplate: indexTemplate,
             size: pageSize,
-            excludeFromPagination: true,
-            indexTemplate: indexTemplate,
             elements: []
         };
 
         let pgNum = 0;  //will be 1-indexed (human-readable)
         let index = {};
         for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
-            if (this.doc.document.pages[i].excludeFromPagination) continue;
+            if (this.doc.document.pages[i].jzdExcludeFromPagination) continue;
             pgNum++;
             for (let el = 0 ; el < this.doc.document.pages[i].elements.length ; el++) {
-                let ref = this.doc.document.pages[i].elements[el].refIndex;
+                let ref = this.doc.document.pages[i].elements[el].jzdRefIndex;
                 if (!ref) continue;
                 if (ref === true) ref = this.doc.document.pages[i].elements[el].text;
                 let refs = ref.split('|');
@@ -835,8 +835,8 @@ safety++; if (safety > 1000) fooooobar();
         let i = this.doc.document.pages.length;
         //iterate backwards so removing index pages wont break things
         while (i--) {
-            if (this.doc.document.pages[i].type == 'toc') {
-                tocTemplate = this.doc.document.pages[i].tocTemplate;
+            if (this.doc.document.pages[i].jzdPageType == 'toc') {
+                tocTemplate = this.doc.document.pages[i].jzdTocTemplate;
                 pageSize = this.doc.document.pages[i].size;
                 this.doc.document.pages.splice(i, 1);
             }
@@ -844,20 +844,20 @@ safety++; if (safety > 1000) fooooobar();
         if (!tocTemplate) return;  // never added index
 
         let templatePage = {
-            type: 'toc',
+            jzdPageType: 'toc',
+            jzdExcludeFromPagination: true,
+            jzdTocTemplate: tocTemplate,
             size: pageSize,
-            excludeFromPagination: true,
-            tocTemplate: tocTemplate,
             elements: []
         };
 
         let pgNum = 0;  //will be 1-indexed (human-readable)
         let toc = [];
         for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
-            if (this.doc.document.pages[i].excludeFromPagination) continue;
+            if (this.doc.document.pages[i].jzdExcludeFromPagination) continue;
             pgNum++;
             for (let el = 0 ; el < this.doc.document.pages[i].elements.length ; el++) {
-                let ref = this.doc.document.pages[i].elements[el].refTOC;
+                let ref = this.doc.document.pages[i].elements[el].jzdRefTOC;
                 if (!ref) continue;
                 if (ref === true) ref = this.doc.document.pages[i].elements[el].text;
                 toc.push([ref, pgNum]);
@@ -904,8 +904,8 @@ safety++; if (safety > 1000) fooooobar();
         let indent = 5;
 
         let elTemplate = {
+            jzdPageNumber: true,
             elementType: 'text',
-            pageNumber: true,
             font: font,
             fontSize: fontSize,
             position: [indent, indent],
@@ -915,14 +915,13 @@ safety++; if (safety > 1000) fooooobar();
 
         let pgNum = 0;
         for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
-            if (this.doc.document.pages[i].excludeFromPagination || this.doc.document.pages[i].excludePageNumber) continue;
+            if (this.doc.document.pages[i].jzdExcludeFromPagination || this.doc.document.pages[i].jzdExcludePageNumber) continue;
             pgNum++;
-console.log('pgnum %d', pgNum);
             let found = false;
             let align = ((i % 2 == 0) ? 'right' : 'left');
             // this allows for changing multiple if such a thing would ever be needed?
             for (let j = 0 ; j < this.doc.document.pages[i].elements.length ; j++) {
-                if (this.doc.document.pages[i].elements[j].pageNumber) {
+                if (this.doc.document.pages[i].elements[j].jzdPageNumber) {
                     this.doc.document.pages[i].elements[j].text = pgNum;
                     this.doc.document.pages[i].elements[j].options = {align: align};
                     found = i;
@@ -942,7 +941,7 @@ console.log('pgnum %d', pgNum);
         for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
             // backwards for magic
             for (let j = this.doc.document.pages[i].elements.length - 1 ; j >= 0 ; j--) {
-                if (this.doc.document.pages[i].elements[j].pageNumber) this.doc.document.pages[i].elements.splice(j, 1);
+                if (this.doc.document.pages[i].elements[j].jzdPageNumber) this.doc.document.pages[i].elements.splice(j, 1);
             }
         }
     }
@@ -1048,7 +1047,7 @@ console.log('pgnum %d', pgNum);
                 let newPage = jzinDesigner.cloneObject(tempDoc.document.pages[pgNum]);
                 for (let i = 0 ; i < newPage.elements.length ; i++) {
                     let field = newPage.elements[i].field;
-                    if (field == 'title') newPage.elements[i].refIndex = true;  //auto-index titles
+                    if (field == 'title') newPage.elements[i].jzdRefIndex = true;  //auto-index titles
                     let elType = newPage.elements[i]['elementType'];
                     let itemOffset = newPage.elements[i].itemOffset || 0;
                     if (itemOffset > itemsPerPage) itemsPerPage = itemOffset;
@@ -1095,10 +1094,10 @@ console.log('pgnum %d', pgNum);
 
         let numMajorElements = 0;
         for (let i = 0 ; i < doc.document.pages[pnum].elements.length ; i++) {
-            if (!doc.document.pages[pnum].elements[i].pageNumber) numMajorElements++;
+            if (!doc.document.pages[pnum].elements[i].jzdPageNumber) numMajorElements++;
         }
         if (!numMajorElements) {
-            let type = doc.document.pages[pnum].type || null;
+            let type = doc.document.pages[pnum].jzdPageType || null;
             let msg = this.text('this page is blank');
             if (type) msg += '<br />[' + this.text(type) + ']';
             let msgEl = document.createElement('div');
