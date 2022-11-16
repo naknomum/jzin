@@ -192,7 +192,6 @@ class jzinDesigner {
         if (!ssheet) alert('styleSheet fail');
         jzinDesigner.fonts = fdata;
         for (let i = 0 ; i < fdata.length ; i++) {
-            if (fdata[i]['built-in']) continue;  // TODO support internal fonts
             let name = fdata[i].name;
             for (let key in fdata[i]) {
                 if (key == 'name') continue;
@@ -564,6 +563,7 @@ class jzinDesigner {
 
     newPageSize(pnum) {
         //FIXME what should size use?
+console.log('OUCH %o', pnum);
         return this.doc.document.pages[pnum || 0].size;
     }
 
@@ -1450,6 +1450,7 @@ safety++; if (safety > 1000) fooooobar();
         multipleOf = multipleOf || 8;
         let paddingNeeded = Math.ceil(this.numDocPages() / multipleOf) * multipleOf - this.numDocPages();
         let offset = this.offsetIndex();
+        if (offset >= this.numDocPages()) offset = this.numDocPages() - 1;
         for (let i = 0 ; i < paddingNeeded ; i++) {
             this.doc.document.pages.splice(offset, 0, {
                 jzdPageType: 'padding',

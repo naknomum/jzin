@@ -1,37 +1,67 @@
 [
 	{
-		"name": "Helvetica",
-		"built-in": true,
+		"name": "Tinos",
 		"regular": {
 			"font-face": {
-				"src": "arial, sans"
+				"src": "fonts/Tinos-Regular.woff2"
 			},
-			"pdf": "Helvetica"
+			"pdf": "Tinos-Regular.ttf"
 		},
 		"bold": {
 			"font-face": {
-				"src": "arial, sans",
+				"src": "fonts/Tinos-Bold.woff2",
 				"font-weight": "bold"
 			},
-			"pdf": "Helvetica-Bold"
+			"pdf": "Tinos-Bold.ttf"
 		},
-		"oblique": {
+		"italic": {
 			"font-face": {
-				"src": "arial, sans",
-				"font-style": "oblique"
+				"src": "fonts/Tinos-Italic.woff2",
+				"font-style": "italic"
 			},
-			"pdf": "Helvetica-Oblique"
+			"pdf": "Tinos-Italic.ttf"
 		},
-		"bold-oblique": {
+		"bold-italic": {
 			"font-face": {
-				"src": "arial, sans",
+				"src": "fonts/Tinos-BoldItalic.woff2",
 				"font-weight": "bold",
-				"font-style": "oblique"
+				"font-style": "italic"
 			},
-			"pdf": "Helvetica-BoldOblique"
+			"pdf": "Tinos-BoldItalic.ttf"
 		}
 	},
 
+	{
+		"name": "OpenSans",
+		"regular": {
+			"font-face": {
+				"src": "fonts/OpenSans-Regular.woff2"
+			},
+			"pdf": "OpenSans-Regular.ttf"
+		},
+		"bold": {
+			"font-face": {
+				"src": "fonts/OpenSans-Bold.woff2",
+				"font-weight": "bold"
+			},
+			"pdf": "OpenSans-Bold.ttf"
+		},
+		"italic": {
+			"font-face": {
+				"src": "fonts/OpenSans-Italic.woff2",
+				"font-style": "italic"
+			},
+			"pdf": "OpenSans-Italic.ttf"
+		},
+		"bold-italic": {
+			"font-face": {
+				"src": "fonts/OpenSans-BoldItalic.woff2",
+				"font-weight": "bold",
+				"font-style": "italic"
+			},
+			"pdf": "OpenSans-BoldItalic.ttf"
+		}
+	},
 
 	{
 		"name": "DM Sans",

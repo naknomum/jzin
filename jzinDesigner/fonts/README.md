@@ -7,8 +7,10 @@ These fonts are a released under the [**Open Font License**](http://scripts.sil.
 * [DM Sans](https://fonts.google.com/specimen/DM+Sans/about)
 * [Domine](https://fonts.google.com/specimen/Domine/about)
 * [Fredoka One](https://fonts.google.com/specimen/Fredoka+One/about)
+* [Open Sans](https://fonts.google.com/specimen/Open+Sans/about)
 * [Oswald](https://fonts.google.com/specimen/Oswald/about)
 * [Tangerine](https://fonts.google.com/specimen/Tangerine/about)
+* [Tinos](https://fonts.google.com/specimen/Tinos/about)
 
 ## Adding more
 
