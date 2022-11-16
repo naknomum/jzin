@@ -1090,8 +1090,8 @@ safety++; if (safety > 1000) fooooobar();
         if (!doc) doc = this.doc;
         console.log('DISPLAYING PAGE %d on %o: %o', pnum, containerEl, doc.document.pages[pnum]);
 
-        let pgw = doc.document.pages[pnum].size[3] - doc.document.pages[pnum].size[1];
-        let pgh = doc.document.pages[pnum].size[2] - doc.document.pages[pnum].size[0];
+        let pgw = doc.document.pages[pnum].size[2] - doc.document.pages[pnum].size[0];
+        let pgh = doc.document.pages[pnum].size[3] - doc.document.pages[pnum].size[1];
         this.setScale(containerEl, pgw, pgh);
 
         let numMajorElements = 0;
@@ -1476,7 +1476,7 @@ safety++; if (safety > 1000) fooooobar();
 
     //kinda debugging only?
     printPreview() {
-        this.createPdfDoc([800, 800], 2, 2, 0);
+        this.createPdfDoc([612 * 1.2, 792 * 1.2], 2, 2, 0);
         this.previewPages(this.pdfDoc);
     }
 
@@ -1570,12 +1570,8 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
     }
 
     print() {
-        //let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
-        //let docJson = JSON.stringify(previewDoc);
-        let docJson = JSON.stringify(this.pdfDoc);
-        //fetch('/app/mkpdf', { method: 'POST', headers: {'content-type': 'application/json'}, body: docJson })
-console.log('????????????? %o', docJson);
-        fetch('/app/mkpdf', { method: 'POST', headers: {'content-type': 'text/json'}, body: docJson })
+        this.createPdfDoc([612 * 1.2, 792 * 1.2], 2, 2, 0);   //FIXME just for debugging - need UI for this
+        fetch('/app/mkpdf', { method: 'POST', headers: {'content-type': 'text/json'}, body: JSON.stringify(this.pdfDoc) })
             .then((response) => response.json())
             .then((data) => console.log(data));
     }
@@ -1604,8 +1600,8 @@ console.log('??????? %d', numPages/(numAcross*numDown));
         //let delta = numAcross * numDown;
         //let delta = signatureSheets * 2;
         let delta = numSheets * 2;
-        //let max = numPages - 1;
-        let max = signatureSheets * 4 - 1;
+        let max = numPages - 1;
+        //let max = signatureSheets * 4 - 1;
 console.log('MAX %d, delta %d', max, delta);
         for (let bundle = 0 ; bundle < (numSheets / signatureSheets) ; bundle++) {
             let ranges = [];
