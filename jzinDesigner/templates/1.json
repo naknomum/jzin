@@ -1,51 +1,97 @@
 {
 	"meta": {
-		"title": "Two Page per Item"
+		"title": "Half-size: 2-up (US Letter)"
 	},
 
 	"document": {
 
+		"layout": {
+			"across": 2,
+			"down": 1,
+			"paperSize": [
+				792,
+				612
+			]
+		},
+
 		"pages": [
 
 			{
-				"size": [0, 0, 360, 360],
+				"size": [0, 0, 396, 612],
 				"elements": [
-
 					{
+						"itemOffset": 0,
 						"elementType": "image",
 						"field": "image",
-						"position": [30, 30],
-						"width": 300,
-						"height": 300
-					}
-				]
-			},
+						"position": [12, 350],
+						"width": 200,
+						"height": 200
+					},
 
-			{
-				"size": [0, 0, 360, 360],
-				"elements": [
 					{
+						"itemOffset": 0,
 						"elementType": "text",
 						"options": { "align": "center" },
-						"position": [30, 30],
+						"overflow": false,
+						"position": [12, 570],
+						"font": "OpenSans regular",
 						"fontSize": 30,
-						"height": 30,
-						"width": 120,
+						"height": 37,
+						"width": 372,
 						"field": "title"
 					},
 
 					{
+						"itemOffset": 0,
 						"elementType": "text",
+						"options": { "align": "full" },
 						"textType": "paragraph",
-						"options": { "align": "left" },
 						"overflow": true,
-						"position": [30, 70],
-						"fontSize": 20,
-						"height": 60,
+						"position": [226, 358],
+						"font": "Tinos regular",
+						"fontSize": 12,
+						"height": 190,
+						"width": 150,
+						"field": "caption"
+					},
+
+
+
+					{
+						"itemOffset": 1,
+						"elementType": "image",
+						"field": "image",
+						"position": [12, 50],
 						"width": 200,
+						"height": 200
+					},
+
+					{
+						"itemOffset": 1,
+						"elementType": "text",
+						"options": { "align": "center" },
+						"overflow": false,
+						"position": [12, 270],
+						"font": "OpenSans regular",
+						"fontSize": 30,
+						"height": 37,
+						"width": 372,
+						"field": "title"
+					},
+
+					{
+						"itemOffset": 1,
+						"elementType": "text",
+						"options": { "align": "full" },
+						"textType": "paragraph",
+						"overflow": true,
+						"position": [226, 58],
+						"font": "Tinos regular",
+						"fontSize": 12,
+						"height": 190,
+						"width": 150,
 						"field": "caption"
 					}
-
 				]
 			}
 		]

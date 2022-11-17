@@ -1,6 +1,6 @@
 {
 	"meta": {
-		"title": "Quarter-size (US Letter)"
+		"title": "Quarter-size: spans-two (US Letter)"
 	},
 
 	"document": {
@@ -19,26 +19,31 @@
 
 			{
 				"size": [0, 0, 286, 396],
+				"startOn": "even",
 				"elements": [
+					{
+						"elementType": "image",
+						"field": "image",
+						"position": [12, 12],
+						"width": 262,
+						"height": 372
+					}
+				]
+			},
 
+			{
+				"size": [0, 0, 286, 396],
+				"elements": [
 					{
 						"elementType": "text",
 						"options": { "align": "center" },
 						"overflow": false,
-						"position": [12, 360],
+						"position": [12, 350],
 						"font": "OpenSans regular",
-						"fontSize": 20,
-						"height": 24,
+						"fontSize": 22,
+						"height": 28,
 						"width": 262,
 						"field": "title"
-					},
-
-					{
-						"elementType": "image",
-						"field": "image",
-						"position": [12, 88],
-						"width": 262,
-						"height": 262
 					},
 
 					{
@@ -46,10 +51,10 @@
 						"options": { "align": "full" },
 						"textType": "paragraph",
 						"overflow": true,
-						"position": [12, 18],
+						"position": [12, 25],
 						"font": "Tinos regular",
 						"fontSize": 10,
-						"height": 62,
+						"height": 300,
 						"width": 262,
 						"field": "caption"
 					}

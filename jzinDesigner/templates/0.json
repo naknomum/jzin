@@ -1,35 +1,57 @@
 {
 	"meta": {
-		"title": "Simple One-Page"
+		"title": "Half-size (US Letter)"
 	},
 
 	"document": {
 
+		"layout": {
+			"across": 2,
+			"down": 1,
+			"paperSize": [
+				792,
+				612
+			]
+		},
+
 		"pages": [
 
 			{
-				"size": [0, 0, 360, 360],
+				"size": [0, 0, 396, 612],
 				"elements": [
-
-					{
-						"elementType": "image",
-						"field": "image",
-						"position": [30, 30],
-						"width": 300,
-						"height": 300
-					},
 
 					{
 						"elementType": "text",
 						"options": { "align": "center" },
 						"overflow": false,
-						"position": [30, 300],
+						"position": [12, 570],
+						"font": "OpenSans regular",
 						"fontSize": 30,
-						"height": 30,
-						"width": 120,
+						"height": 37,
+						"width": 372,
 						"field": "title"
-					}
+					},
 
+					{
+						"elementType": "image",
+						"field": "image",
+						"position": [12, 178],
+						"width": 372,
+						"height": 372
+					},
+
+					{
+						"elementType": "text",
+						"options": { "align": "full" },
+						"textType": "paragraph",
+						"overflow": true,
+						"position": [12, 12],
+						"font": "Tinos regular",
+						"fontSize": 12,
+						"height": 150,
+						"width": 372,
+						"field": "caption"
+					}
 				]
 			}
 		]
