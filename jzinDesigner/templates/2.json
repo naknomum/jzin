@@ -9,6 +9,7 @@
 			"across": 2,
 			"down": 2,
 			"gutter": 20,
+			"generalScale": 0.6,
 			"paperSize": [
 				612,
 				792

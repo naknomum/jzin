@@ -556,6 +556,17 @@ class jzinDesigner {
     }
 
 
+    // this is to allow nudging some values like fontSize for chapter titles, TOC, index, etc.
+    //   it is *roughly* 1.0 for half-page (u.s. letter) size layout, and can be tweaked accordingly for bigger/smaller layouts
+    generalScale() {
+        return (this.doc.document.layout && this.doc.document.layout.generalScale) || 1.0;
+    }
+    // this uses above, but just kinda rounds it nicely
+    generalScaleFontSize(fs) {
+        // FIXME we still get stuff like 10.799999999999 cuz js bites me
+        return Math.round(this.generalScale() * fs * 10) / 10;
+    }
+
     defaultFont() {
         // FIXME
         return jzinDesigner.fonts[0].name + ' regular';
@@ -576,17 +587,18 @@ console.log('OUCH %o', pnum);
 
     insertChapterPage(offset) {
         let size = this.newPageSize(offset);
+        let fontSize = this.generalScaleFontSize(50);
         this.doc.document.pages.splice(offset, 0, {
             size: size,
             jzdPageType: 'chapter',
             elements: [{
                 jzdRefTOC: true,
                 elementType: 'text',
-                fontSize: 40,
+                fontSize: fontSize,
                 font: this.defaultFont(),
                 options: {align: 'center'},
                 position: [0, (size[3] - size[1]) * 0.6],
-                height: 45,
+                height: fontSize * 1.2,
                 width: size[2] - size[0],
                 text: this.text('Chapter Title')
             }]
@@ -600,6 +612,7 @@ console.log('OUCH %o', pnum);
 
     insertCoverPages() {
         let size = this.newPageSize();
+        let fontSize = this.generalScaleFontSize(60);
         this.doc.document.pages.splice(0, 0,
             {
                 size: size,
@@ -607,11 +620,11 @@ console.log('OUCH %o', pnum);
                 jzdPageType: 'cover-front',
                 elements: [{
                     elementType: 'text',
-                    fontSize: 50,
+                    fontSize: fontSize,
                     font: this.defaultFont(),
                     options: {align: 'center'},
                     position: [0, (size[3] - size[1]) * 0.7],
-                    height: 58,
+                    height: fontSize * 1.2,
                     width: size[2] - size[0],
                     text: this.text('Cover Page')
                 }]
@@ -622,10 +635,10 @@ console.log('OUCH %o', pnum);
                 jzdPageType: 'cover-front-inside',
                 elements: [{
                     elementType: 'text',
-                    fontSize: 10,
+                    fontSize: fontSize * 0.3,
                     font: this.defaultFont(),
                     position: [20, 60],
-                    height: 13,
+                    height: fontSize * 0.4,
                     width: (size[3] - size[1]) / 2,
                     text: this.text('Created with: ') + 'https://jzin.org/'
                 }]
@@ -649,12 +662,13 @@ console.log('OUCH %o', pnum);
 
     insertIndexPages() {
         let offset = this.offsetIndex();
+        let fontSize = this.generalScaleFontSize(12);
         this.doc.document.pages.splice(offset, 0, {
             jzdPageType: 'index',
             jzdExcludeFromPagination: true,
             jzdIndexTemplate: {
                 font: this.defaultFont(),
-                fontSize: 10
+                fontSize: fontSize
             },
             size: this.newPageSize(),
             elements: []
@@ -680,12 +694,13 @@ console.log('OUCH %o', pnum);
 
     insertTOCPages() {
         let offset = this.offsetTOC();
+        let fontSize = this.generalScaleFontSize(18);
         this.doc.document.pages.splice(offset, 0, {
             jzdPageType: 'toc',
             jzdExcludeFromPagination: true,
             jzdTocTemplate: {
                 font: this.defaultFont(),
-                fontSize: 12
+                fontSize: fontSize
             },
             size: this.newPageSize(),
             elements: []
@@ -828,19 +843,26 @@ safety++; if (safety > 1000) fooooobar();
                     width: wordSize[0] + 10
                     //width: (templatePage.size[2] - templatePage.size[0]) - 2 * indent
                 });
-                let pageNumbers = index[words[wn]].join(', ');
-                let pnSize = jzinDesigner.textSize(pageNumbers, font, fontSize);
-                ipage.elements.push({
-                    elementType: 'text',
-                    font: font,
-                    fontSize: fontSize,
-                    options: {align: 'right'},
-                    text: pageNumbers,
-                    height: lineHeight,
-                    position: [templatePage.size[2] - templatePage.size[0] - 2 * indent - pnSize[0] + 10, y],
-                    width: pnSize[0] + 10
-                });
-                y -= lineHeight;
+                let pageNumbers = index[words[wn]].slice();  // there should be an array operator called spice() just to make it totally confusing
+                let maxPerLine = 10;  // yeah kinda arbitrary
+                while (pageNumbers.length) {
+console.log('pageNumbers = %o', pageNumbers);
+                    let theseNumbers = pageNumbers.splice(0, maxPerLine);
+                    let pnText = theseNumbers.join(', ');
+                    let pnSize = jzinDesigner.textSize(pnText, font, fontSize);
+                    ipage.elements.push({
+                        elementType: 'text',
+                        font: font,
+                        fontSize: fontSize,
+                        options: {align: 'right'},
+                        text: pnText,
+                        height: lineHeight,
+                        position: [templatePage.size[2] - templatePage.size[0] - 2 * indent - pnSize[0] + 10, y],
+                        width: pnSize[0] + 10
+                    });
+                    y -= lineHeight;
+                    maxPerLine = 18;  // we can up this for 2nd+ line
+                }
                 wn++;
                 if (wn >= words.length) y = -1;
             }
@@ -936,7 +958,7 @@ safety++; if (safety > 1000) fooooobar();
         if (!this.showPageNumbers) return;
         let size = this.newPageSize();
         let font = this.defaultFont();
-        let fontSize = 10;
+        let fontSize = this.generalScaleFontSize(11);
         let indent = 5;
 
         let elTemplate = {
