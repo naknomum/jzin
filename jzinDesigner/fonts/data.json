@@ -1,33 +1,33 @@
 [
 	{
-		"name": "Tinos",
+		"name": "SourceSerifPro",
 		"regular": {
 			"font-face": {
-				"src": "fonts/Tinos-Regular.woff2"
+				"src": "fonts/SourceSerifPro-Regular.woff2"
 			},
-			"pdf": "Tinos-Regular.ttf"
+			"pdf": "SourceSerifPro-Regular.ttf"
 		},
 		"bold": {
 			"font-face": {
-				"src": "fonts/Tinos-Bold.woff2",
+				"src": "fonts/SourceSerifPro-Bold.woff2",
 				"font-weight": "bold"
 			},
-			"pdf": "Tinos-Bold.ttf"
+			"pdf": "SourceSerifPro-Bold.ttf"
 		},
 		"italic": {
 			"font-face": {
-				"src": "fonts/Tinos-Italic.woff2",
+				"src": "fonts/SourceSerifPro-Italic.woff2",
 				"font-style": "italic"
 			},
-			"pdf": "Tinos-Italic.ttf"
+			"pdf": "SourceSerifPro-Italic.ttf"
 		},
 		"bold-italic": {
 			"font-face": {
-				"src": "fonts/Tinos-BoldItalic.woff2",
+				"src": "fonts/SourceSerifPro-BoldItalic.woff2",
 				"font-weight": "bold",
 				"font-style": "italic"
 			},
-			"pdf": "Tinos-BoldItalic.ttf"
+			"pdf": "SourceSerifPro-BoldItalic.ttf"
 		}
 	},
 

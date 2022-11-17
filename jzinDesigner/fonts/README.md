@@ -9,8 +9,8 @@ These fonts are a released under the [**Open Font License**](http://scripts.sil.
 * [Fredoka One](https://fonts.google.com/specimen/Fredoka+One/about)
 * [Open Sans](https://fonts.google.com/specimen/Open+Sans/about)
 * [Oswald](https://fonts.google.com/specimen/Oswald/about)
+* [Source Serif Pro](https://fonts.google.com/specimen/Source+Serif+Pro/about)
 * [Tangerine](https://fonts.google.com/specimen/Tangerine/about)
-* [Tinos](https://fonts.google.com/specimen/Tinos/about)
 
 ## Adding more
 

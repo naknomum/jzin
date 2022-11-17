@@ -1477,15 +1477,18 @@ safety++; if (safety > 1000) fooooobar();
 
     //kinda debugging only?
     printPreview() {
-        this.createPdfDoc([612 * 1.2, 792 * 1.2], 2, 2, 0);
+        this.createPdfDoc();
         this.previewPages(this.pdfDoc);
     }
 
     //paperSize should be [w,h] in pts
-    createPdfDoc(paperSize, numAcross, numDown, signatureSheets) {
-        numAcross = numAcross || 1;
-        numDown = numDown || 1;
-        signatureSheets = signatureSheets || 0;
+    createPdfDoc(paperSize, numAcross, numDown, signatureSheets, gutter) {
+        if (!this.doc.document.layout) this.doc.document.layout = {};
+        paperSize = paperSize || this.doc.document.layout.paperSize || [612, 792];
+        numAcross = numAcross || this.doc.document.layout.across || 2;
+        numDown = numDown || this.doc.document.layout.down || 1;
+        signatureSheets = signatureSheets || this.doc.document.layout.signatureSheets || 0;
+        gutter = gutter || this.doc.document.layout.gutter || 0;  //FIXME
 
         let pageOrder = jzinDesigner.getPageOrder(numAcross, numDown, signatureSheets, this.numDocPages());
 console.log('>>>>>> pageOrder=%o', pageOrder);
@@ -1571,7 +1574,7 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
     }
 
     print() {
-        this.createPdfDoc([612 * 1.2, 792 * 1.2], 2, 2, 0);   //FIXME just for debugging - need UI for this
+        this.createPdfDoc();
         fetch('/app/mkpdf', { method: 'POST', headers: {'content-type': 'text/json'}, body: JSON.stringify(this.pdfDoc) })
             .then((response) => response.json())
             .then((data) => console.log(data));
