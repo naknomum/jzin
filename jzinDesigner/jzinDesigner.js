@@ -62,6 +62,8 @@ class jzinDesigner {
         this.el.addEventListener('mousemove', function(ev) { me.cornerEvent(ev); });
         this.el.addEventListener('mouseup', function(ev) { me.cornerEvent(ev); });
 
+        document.addEventListener('keyup', function(ev) { me.keyUp(ev); });  // some key shortcuts
+
         if (!this.el.style.position) this.el.style.position = 'relative';
         this.uiEl = document.createElement('div');
         this.uiEl.style.position = 'absolute';
@@ -1352,6 +1354,35 @@ console.log('pageNumbers = %o', pageNumbers);
             el.appendChild(rc);
         }
         return el;
+    }
+
+    keyUp(ev) {
+        console.log('KEYUP %o', ev);
+        if (ev.code == 'PageDown') {
+            this.pageChange(1);
+            this.previewActivate(this.pageCurrent);
+            ev.stopPropagation();
+            ev.preventDefault();
+            this.previewScrollTo(this.pageCurrent);
+        } else if (ev.code == 'PageUp') {
+            this.pageChange(-1);
+            this.previewActivate(this.pageCurrent);
+            ev.stopPropagation();
+            ev.preventDefault();
+            this.previewScrollTo(this.pageCurrent);
+        } else if (ev.code == 'End') {
+            this.pageGo(this.offsetIndex());
+            this.previewActivate(this.pageCurrent);
+            ev.stopPropagation();
+            ev.preventDefault();
+            this.previewScrollTo(this.pageCurrent);
+        } else if (ev.code == 'Home') {
+            this.pageGo(0);
+            this.previewActivate(this.pageCurrent);
+            ev.stopPropagation();
+            ev.preventDefault();
+            this.previewScrollTo(this.pageCurrent);
+        }
     }
 
     cornerEvent(ev) {
