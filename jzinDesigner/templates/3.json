@@ -48,7 +48,7 @@
 
 					{
 						"elementType": "text",
-						"options": { "align": "full" },
+						"options": { "align": "justified" },
 						"textType": "paragraph",
 						"overflow": true,
 						"position": [12, 25],

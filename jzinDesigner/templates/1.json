@@ -44,7 +44,7 @@
 					{
 						"itemOffset": 0,
 						"elementType": "text",
-						"options": { "align": "full" },
+						"options": { "align": "justified" },
 						"textType": "paragraph",
 						"overflow": true,
 						"position": [226, 358],
@@ -82,7 +82,7 @@
 					{
 						"itemOffset": 1,
 						"elementType": "text",
-						"options": { "align": "full" },
+						"options": { "align": "justified" },
 						"textType": "paragraph",
 						"overflow": true,
 						"position": [226, 58],
