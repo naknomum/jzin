@@ -4,12 +4,13 @@ use strict;
 use PDF::API2;
 use JSON;
 use Data::Dumper;
+use utf8;
 
 my %MAP_FONTS;
 my %MAP_IMAGES;
 my $pdf;
 my $DEFAULT_FONT;
-my $DEBUG = 0;
+my $DEBUG = 1;
 
 sub process_jzin {
     my $jzin = shift;
@@ -73,12 +74,35 @@ sub process_element_text {
     my ($page, $el) = @_;
     my $text = $page->text();
     my $font = $DEFAULT_FONT;
+    my $fontSize = $el->{fontSize} || 12;
+    my %options = %{$el->{options}} if $el->{options};
     warn "could not find MAP_FONTS{$el->{font}} (using DEFAULT)" if ($el->{font} && !$MAP_FONTS{$el->{font}});
-    warn "TEXT ELEMENT: " . Dumper($el) if $DEBUG;
+    warn "TEXT ELEMENT: " . Dumper($el) . "OPTIONS: " . Dumper(\%options) if $DEBUG;
     $font = $MAP_FONTS{$el->{font}}->{font} if ($el->{font} && $MAP_FONTS{$el->{font}});
-    $text->font($font, $el->{fontSize} || 12);
-    $text->position($el->{position}->[0], $el->{position}->[1]);
-    $text->text($el->{text});
+    $text->font($font, $fontSize);
+    $text->fill_color($el->{color} || 'black');
+
+    my $x = $el->{position}->[0];
+    my $y = $el->{position}->[1];
+    my $w = $el->{width} || 0;
+    my $h = $el->{height} || 0;
+
+    if ($options{align} eq 'center') {
+        $x += $w / 2;
+    } elsif ($options{align} eq 'right') {
+        $x += $w;
+    }
+
+    if (($el->{textType} eq 'paragraph') && $el->{width} && $el->{height}) {
+        $y += ($h - $fontSize);
+        $text->position($x, $y);
+        $h += 200 if $el->{overflow};
+        my $over = $text->paragraph($el->{text}, $w, $h + $fontSize * 2, %options);
+        warn "+++ overflowed text=($over) on " . Dumper($el) if $over;
+    } else {
+        $text->position($x, $y);
+        $text->text($el->{text}, %options);
+    }
 }
 
 
