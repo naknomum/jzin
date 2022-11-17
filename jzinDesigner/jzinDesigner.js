@@ -610,9 +610,9 @@ console.log('OUCH %o', pnum);
                     fontSize: 50,
                     font: this.defaultFont(),
                     options: {align: 'center'},
-                    position: [0, (size[2] - size[0]) / 2],
-                    height: 55,
-                    width: size[3] - size[1],
+                    position: [0, (size[3] - size[1]) * 0.7],
+                    height: 58,
+                    width: size[2] - size[0],
                     text: this.text('Cover Page')
                 }]
             },
@@ -773,6 +773,14 @@ console.log('OUCH %o', pnum);
         for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
             if (this.doc.document.pages[i].jzdExcludeFromPagination) continue;
             pgNum++;
+            if (this.doc.document.pages[i].jzdHashTags && this.doc.document.pages[i].jzdHashTags.length) {
+                for (let j = 0 ; j < this.doc.document.pages[i].jzdHashTags.length ; j++) {
+                    let ref = this.doc.document.pages[i].jzdHashTags[j];
+                    if (index[ref] && (index[ref].indexOf(pgNum) > -1)) continue; //already indexed on this page
+                    if (!index[ref]) index[ref] = [];
+                    index[ref].push(pgNum);
+                }
+            }
             for (let el = 0 ; el < this.doc.document.pages[i].elements.length ; el++) {
                 let ref = this.doc.document.pages[i].elements[el].jzdRefIndex;
                 if (!ref) continue;
@@ -1047,6 +1055,7 @@ safety++; if (safety > 1000) fooooobar();
             let itemsPerPage = 0;
             for (let pgNum = 0 ; pgNum < tempDoc.document.pages.length ; pgNum++) {
                 let newPage = jzinDesigner.cloneObject(tempDoc.document.pages[pgNum]);
+                newPage.jzdHashTags = [];
                 for (let i = 0 ; i < newPage.elements.length ; i++) {
                     let field = newPage.elements[i].field;
                     if (field == 'title') newPage.elements[i].jzdRefIndex = true;  //auto-index titles
@@ -1060,6 +1069,7 @@ safety++; if (safety > 1000) fooooobar();
                         newPage.elements[i].hidden = true;
                         continue;
                     }
+                    if (i == 0) newPage.jzdHashTags = newPage.jzdHashTags.concat(feed[offset].hashtags || []);
                     newPage.elements[i][elType] = feed[offset][field] || null;
                     console.log('       PAGE[%d] els: %o ???', doc.document.pages.length, newPage.elements);
                 }
@@ -1575,7 +1585,7 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
 
     print() {
         this.createPdfDoc();
-        fetch('/app/mkpdf', { method: 'POST', headers: {'content-type': 'text/json'}, body: JSON.stringify(this.pdfDoc) })
+        fetch('/app/mkpdf', { method: 'POST', headers: {'content-type': 'text/json; charset=utf-8'}, body: JSON.stringify(this.pdfDoc) })
             .then((response) => response.json())
             .then((data) => console.log(data));
     }
