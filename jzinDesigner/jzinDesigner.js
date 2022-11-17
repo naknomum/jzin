@@ -585,9 +585,9 @@ console.log('OUCH %o', pnum);
                 fontSize: 40,
                 font: this.defaultFont(),
                 options: {align: 'center'},
-                position: [0, (size[2] - size[0]) / 2],
+                position: [0, (size[3] - size[1]) * 0.6],
                 height: 45,
-                width: size[3] - size[1],
+                width: size[2] - size[0],
                 text: this.text('Chapter Title')
             }]
         },
@@ -816,15 +816,29 @@ safety++; if (safety > 1000) fooooobar();
             while (y > 0) {
 console.log('wn = %o, y = %o lineHeight=%o, words.length=%o', wn, y, lineHeight, words.length);
 safety++; if (safety > 1000) fooooobar();
+                let wordSize = jzinDesigner.textSize(words[wn], font, fontSize);
                 ipage.elements.push({
                     elementType: 'text',
                     font: font,
                     fontSize: fontSize,
                     options: {align: 'left'},
-                    text: words[wn] + ': ' + index[words[wn]].join(', '),
+                    text: words[wn],
                     position: [indent, y],
                     height: lineHeight,
-                    width: (templatePage.size[2] - templatePage.size[0]) - 2 * indent
+                    width: wordSize[0] + 10
+                    //width: (templatePage.size[2] - templatePage.size[0]) - 2 * indent
+                });
+                let pageNumbers = index[words[wn]].join(', ');
+                let pnSize = jzinDesigner.textSize(pageNumbers, font, fontSize);
+                ipage.elements.push({
+                    elementType: 'text',
+                    font: font,
+                    fontSize: fontSize,
+                    options: {align: 'right'},
+                    text: pageNumbers,
+                    height: lineHeight,
+                    position: [templatePage.size[2] - templatePage.size[0] - 2 * indent - pnSize[0] + 10, y],
+                    width: pnSize[0] + 10
                 });
                 y -= lineHeight;
                 wn++;
@@ -886,17 +900,29 @@ safety++; if (safety > 1000) fooooobar();
         let lineHeight = fontSize * 1.3;
         let y = (templatePage.size[3] - templatePage.size[1]) - lineHeight - indent;
 
+        let usable = templatePage.size[2] - templatePage.size[0] - 2 * indent;
+        let col = usable * 0.7;
         let tpage = jzinDesigner.cloneObject(templatePage);
         for (let i = 0 ; i < toc.length ; i++) {
             tpage.elements.push({
                 elementType: 'text',
                 font: font,
                 fontSize: fontSize,
-                options: {align: 'left'},
-                text: toc[i][0] + ': ' + toc[i][1],
+                options: {align: 'right'},
+                text: toc[i][0],
                 position: [indent, y],
                 height: lineHeight,
-                width: (templatePage.size[2] - templatePage.size[0]) - 2 * indent
+                width: col
+            });
+            tpage.elements.push({
+                elementType: 'text',
+                font: font,
+                fontSize: fontSize,
+                options: {align: 'right'},
+                text: toc[i][1],
+                position: [col + 2 * indent, y],
+                height: lineHeight,
+                width: fontSize * 3
             });
             y -= lineHeight;
         }
@@ -1590,6 +1616,19 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
             .then((data) => console.log(data));
     }
 
+    // this is awful, but gets us there for now
+    //  potentially better?   https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
+    static textSize(text, font, fontSize) {
+/*
+        this.tmpEl.style.fontFamily = font;
+        this.tmpEl.style.fontSize = fontSize;
+        this.tmpEl.innerHTML = text;
+        let wh = [this.tmpEl.offsetWidth, this.tmpEl.offsetHeight];
+*/
+        let wh = [text.length * fontSize * 0.52, fontSize * 1.2];
+        return wh;
+    }
+
     // numAcross should be multiple of 2 or things are not good
     static getPageOrder(numAcross, numDown, signatureSheets, numPages) {
         let order = [];
@@ -1721,5 +1760,4 @@ console.log('--- i=%d side=%d o=%d (%d,%d) %o', i, o, numAcross/2-x-1, x,y, ords
 }
 
 
-//  https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
 
