@@ -6,6 +6,8 @@ use JSON;
 use Data::Dumper;
 use utf8;
 
+my $VERSION = '0.0.3';
+
 my %MAP_FONTS;
 my %MAP_IMAGES;
 my $pdf;
@@ -18,6 +20,14 @@ sub process_jzin {
     $DEFAULT_FONT = $pdf->font('Times-Roman');
     &process_maps($jzin->{maps});
     &process_document($jzin->{document});
+    $pdf->title($jzin->{meta}->{title}) if $jzin->{meta}->{title};
+    $pdf->author($jzin->{meta}->{author}) if $jzin->{meta}->{author};
+    $pdf->subject($jzin->{meta}->{subject}) if $jzin->{meta}->{subject};
+    $pdf->keywords(join(' ', @{$jzin->{meta}->{keywords}})) if $jzin->{meta}->{keywords};
+    $pdf->creator($jzin->{meta}->{creator}) if $jzin->{meta}->{creator};
+    $pdf->producer('jzin.org JZIN2PDF ' . $VERSION);
+    $pdf->created(&pdf_timestamp());
+    $pdf->modified(&pdf_timestamp());
     return $pdf;
 }
 
@@ -119,6 +129,13 @@ sub process_element_image {
     );
 }
 
+
+sub pdf_timestamp {
+    my @t = (reverse gmtime())[3..8];
+    $t[0] += 1900;
+    $t[1]++;
+    return sprintf('%04d%02d%02d%02d%02d%02d', @t);
+}
 
 1;
 
