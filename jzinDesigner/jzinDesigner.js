@@ -1,6 +1,7 @@
 
 class jzinDesigner {
 
+    static version = '0.0.4';
     static fonts = null;
     static fontSelect = null;
 
@@ -33,11 +34,12 @@ class jzinDesigner {
         'fr'
     ];
 
-    constructor(el, dataDirUrl) {
+    constructor(el, projId) {
+        this.projId = projId;
         this.el = el;
         this.pageBackdrop = null;
         this.pageCurrent = 0;
-        this.dataDirUrl = dataDirUrl;
+        this.dataDirUrl = '../assets/' + projId;
         this.feed = null;
         this.doc = null;
         this.activeTemplate = null;
@@ -68,7 +70,7 @@ class jzinDesigner {
         this.uiEl = document.createElement('div');
         this.uiEl.style.position = 'absolute';
         this.uiEl.style.width = '300px';
-        this.uiEl.style.height = '400px';
+        this.uiEl.style.height = '450px';
         this.uiEl.style.top = '10px';
         this.uiEl.style.right = '50%';
         this.uiEl.style.backgroundColor = 'rgba(240,240,240,0.6)';
@@ -82,10 +84,21 @@ class jzinDesigner {
         this.previewWrapper.setAttribute('class', 'jzd-page-preview-wrapper');
         this.el.appendChild(this.previewWrapper);
 
+        this.messageEl = document.createElement('div');
+        this.messageEl.setAttribute('class', 'jzd-message');
+        this.el.appendChild(this.messageEl);
+
         this.initTemplates();
         this.initFonts();
         this.initFeed();
         this.initDoc();
+    }
+
+    message(msg, level) {
+        let cls = 'jzd-message';
+        if (level) cls += '-' + level;
+        this.messageEl.setAttribute('class', cls);
+        this.messageEl.innerHTML = msg;
     }
 
     updatePreference(key, value) {
@@ -167,9 +180,9 @@ class jzinDesigner {
 
     // TODO: resolve how to fetch remove vs local
     initDoc() {
-        let loc = jzinDesigner.localStorageGet('doc.' + this.dataDirUrl);
+        let loc = jzinDesigner.localStorageGet('doc.' + this.projId);
         if (loc) {
-            console.info('using local doc: %s', this.dataDirUrl);
+            console.info('using local doc: %s', this.projId);
             this.gotDoc(loc);
             return;
         }
@@ -249,9 +262,10 @@ class jzinDesigner {
 
     setUI(el) {
         if (!el) {
-            if (this.activeTemplate || !(this.doc && this.doc.document && this.doc.document.pages)) {
+            if ((this.activeTemplate != undefined) || !(this.doc && this.doc.document && this.doc.document.pages)) {
                 if (this.activeTemplate == null) this.chooseTemplate(0);
                 this.initTemplateUI();
+                this.message(this.text('Choose a template. Edit the template and change how all pages will look.'));
             } else {
                 this.initDocUI();
                 this.pageCurrent = null;
@@ -355,7 +369,9 @@ class jzinDesigner {
             let topt = document.createElement('option');
             if (i == this.activeTemplate) topt.setAttribute('selected', '');
             topt.setAttribute('value', i);
-            topt.innerHTML = jzinDesigner.templates[i].meta.title;
+            let tname = jzinDesigner.templates[i].meta.title;
+            if (jzinDesigner.templates[i].meta._modified) tname += ' &#9733;';
+            topt.innerHTML = tname;
             tsel.appendChild(topt);
         }
         this.uiEl.appendChild(tsel);
@@ -395,6 +411,7 @@ class jzinDesigner {
     }
 
     initDocUI() {
+        this.message(this.text('Now you may edit the document, add special pages, and print.'));
         this.el.classList.add('jzd-mode-document');
         this.el.classList.remove('jzd-mode-template');
         this.uiEl.innerHTML = '';
@@ -540,14 +557,24 @@ class jzinDesigner {
             ev.stopPropagation();
         });
         this.uiEl.appendChild(b);
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        b = document.createElement('button');
+        b.innerHTML = this.text('Print');
+        b.addEventListener('click', function(ev) {
+            me.print();
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(b);
     }
 
     createDocFromTemplate() {
         this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
         // TODO do we copy template? reference template?  etc
         this.doc.meta._created = new Date();
-        this.doc.meta.title = 'REAL TITLE GOES HERE';
-        this.doc.meta.dataDirUrl = this.dataDirUrl;
+        this.doc.meta.title = (this.feed.meta && this.feed.meta.title) || this.text('Untitled');
+        this.doc.meta.projectId = this.projId;
+        this.doc.meta.guidHash = (this.feed.meta && this.feed.meta.guidHash) || '000000';  //TODO could compute in js
         this.docAltered();  // will save
         this.previewPages(this.doc);
         this.activeTemplate = null;
@@ -557,6 +584,10 @@ class jzinDesigner {
         this.previewActivate(0);
     }
 
+
+    url() {
+        return 'https://jzin.org/g/' + this.doc.meta.guidHash;
+    }
 
     // this is to allow nudging some values like fontSize for chapter titles, TOC, index, etc.
     //   it is *roughly* 1.0 for half-page (u.s. letter) size layout, and can be tweaked accordingly for bigger/smaller layouts
@@ -615,6 +646,7 @@ console.log('OUCH %o', pnum);
     insertCoverPages() {
         let size = this.newPageSize();
         let fontSize = this.generalScaleFontSize(60);
+        let y = 40;
         this.doc.document.pages.splice(0, 0,
             {
                 size: size,
@@ -628,22 +660,40 @@ console.log('OUCH %o', pnum);
                     position: [0, (size[3] - size[1]) * 0.7],
                     height: fontSize * 1.2,
                     width: size[2] - size[0],
-                    text: this.text('Cover Page')
+                    text: this.doc.meta.title || this.text('Cover Page')
                 }]
             },
             {
                 size: size,
                 jzdExcludeFromPagination: true,
                 jzdPageType: 'cover-front-inside',
-                elements: [{
-                    elementType: 'text',
-                    fontSize: fontSize * 0.3,
-                    font: this.defaultFont(),
-                    position: [20, 60],
-                    height: fontSize * 0.4,
-                    width: (size[3] - size[1]) / 2,
-                    text: this.text('Created with: ') + 'https://jzin.org/'
-                }]
+                elements: [
+                    {
+                        elementType: 'image',
+                        position: [20, y + fontSize],
+                        height: 60,
+                        width: 60,
+                        image: 'qr.png'
+                    },
+                    {
+                        elementType: 'text',
+                        fontSize: fontSize * 0.3,
+                        font: this.defaultFont(),
+                        position: [25, y + fontSize * 0.4],
+                        height: fontSize * 0.4,
+                        width: (size[3] - size[1]) / 2,
+                        text: this.url()
+                    },
+                    {
+                        elementType: 'text',
+                        fontSize: fontSize * 0.25,
+                        font: this.defaultFont(),
+                        position: [25, y],
+                        height: fontSize * 0.35,
+                        width: (size[3] - size[1]) / 2,
+                        text: this.text('Created with: ') + 'jzin.org'
+                    }
+                ]
             }
         );
         this.doc.document.pages.splice(this.doc.document.pages.length, 0,
@@ -735,6 +785,7 @@ console.log('OUCH %o', pnum);
         delete restore._delName;
         console.info('restoring trashOffset=%d, target=%d: %o', trashOffset, target, restore);
         this.doc.document.pages.splice(target, 0, restore);
+        this.message(this.text('The deleted page has been restored.'));
         return target;
     }
 
@@ -745,6 +796,7 @@ console.log('OUCH %o', pnum);
         del._delName = this.text('page') + ' ' + pageNum;
         del._delPageNum = pageNum;
         this.doc._trash.push(del);
+        this.message(this.text('Page deleted. You may undo this with the restore menu.'), 'warning');
     }
 
     swapPages(a, b) {
@@ -823,6 +875,7 @@ console.log('OUCH %o', pnum);
         let lineHeight = fontSize * 1.3;
         let y = (templatePage.size[3] - templatePage.size[1]) - lineHeight - indent;
 
+        this.doc.meta.keywords = [];
         words.sort(function(a,b) { return a.toLowerCase().localeCompare(b.toLowerCase()); });
         let wn = 0;
 let safety = 0;
@@ -833,6 +886,7 @@ safety++; if (safety > 1000) fooooobar();
             while (y > 0) {
 console.log('wn = %o, y = %o lineHeight=%o, words.length=%o', wn, y, lineHeight, words.length);
 safety++; if (safety > 1000) fooooobar();
+                this.doc.meta.keywords.push(words[wn]);
                 let wordSize = jzinDesigner.textSize(words[wn], font, fontSize);
                 ipage.elements.push({
                     elementType: 'text',
@@ -1264,10 +1318,10 @@ console.log('pageNumbers = %o', pageNumbers);
     }
 
     save() {
-        if (!this.doc.meta.dataDirUrl) return;
+        if (!this.doc.meta.projectId) return;
         this.doc.meta._saved = new Date();
-        console.info('saving %s at %s', this.doc.meta.dataDirUrl, this.doc.meta._saved);
-        jzinDesigner.localStorageSet('doc.' + this.doc.meta.dataDirUrl, this.doc);
+        console.info('saving %s at %s', this.doc.meta.projectId, this.doc.meta._saved);
+        jzinDesigner.localStorageSet('doc.' + this.doc.meta.projectId, this.doc);
         //TODO
         //this.doc.meta._savedRemote = new Date();
         //this.saveRemote()
@@ -1283,7 +1337,7 @@ console.log('pageNumbers = %o', pageNumbers);
         }
     }
     clearLocalStorageDocument() {
-        jzinDesigner.localStorageRemove('doc.' + this.doc.meta.dataDirUrl);
+        jzinDesigner.localStorageRemove('doc.' + this.doc.meta.projectId);
     }
 
     elementClicked(ev) {
@@ -1297,6 +1351,7 @@ console.log('pageNumbers = %o', pageNumbers);
     }
 
     activateElement(el) {
+        this.message(this.text('Alter this element with the different options.'));
         console.log('ACTIVATE ELEMENT el=%o, activeElement=%o', el, this.activeElement);
         if ((el == null) && (this.activeElement == null)) return;
         let els = this.el.getElementsByClassName('jzd-element-active');
@@ -1357,7 +1412,6 @@ console.log('pageNumbers = %o', pageNumbers);
     }
 
     keyUp(ev) {
-        console.log('KEYUP %o', ev);
         if (ev.code == 'PageDown') {
             this.pageChange(1);
             this.previewActivate(this.pageCurrent);
@@ -1583,6 +1637,9 @@ console.log('pageNumbers = %o', pageNumbers);
 console.log('>>>>>> pageOrder=%o', pageOrder);
 
         this.pdfDoc = jzinDesigner.cloneObject(this.doc);
+        //this.pdfDoc.meta.author 
+        this.pdfDoc.meta.subject = 'guid=' + this.projId + ' ' + this.url();
+        this.pdfDoc.meta.creator = 'jzin.org jzinDesigner ' + jzinDesigner.version;
         this.pdfDoc.document.layout = {paperSize: paperSize};
         this.pdfDoc.document.pages = [];
         let poffset = 0;
@@ -1664,9 +1721,26 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
 
     print() {
         this.createPdfDoc();
-        fetch('/app/mkpdf', { method: 'POST', headers: {'content-type': 'text/json; charset=utf-8'}, body: JSON.stringify(this.pdfDoc) })
+        let me = this;
+        let errorMsg = this.text('Sorry, there was an error printing.');
+        fetch('./app/mkpdf', { method: 'POST', headers: {'content-type': 'text/json; charset=utf-8'}, body: JSON.stringify(this.pdfDoc) })
             .then((response) => response.json())
-            .then((data) => console.log(data));
+            .then((data) => {
+                console.log('yes!!! %o', data);
+                if (data.success) {
+                    let link = document.createElement('a');
+                    document.body.appendChild(link);
+                    link.download = (me.doc.meta.title || 'Untitled') + ' jzin-' + (me.doc.meta.guidHash || '000000') + '.pdf';
+                    link.href = '../assets/' + me.projId + '/final.pdf';
+                    link.click();
+                    link.remove();
+                } else {
+                    me.message(errorMsg, 'error');
+                }
+            }).catch((error) => {
+                console.error('printing error! %o', error);
+                me.message(errorMsg, 'error');
+            });
     }
 
     // this is awful, but gets us there for now
