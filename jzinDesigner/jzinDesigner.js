@@ -586,7 +586,7 @@ class jzinDesigner {
 
 
     url() {
-        return 'https://jzin.org/g/' + this.doc.meta.guidHash;
+        return 'jzin.org/g/' + this.doc.meta.guidHash;
     }
 
     // this is to allow nudging some values like fontSize for chapter titles, TOC, index, etc.
