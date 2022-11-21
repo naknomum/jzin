@@ -1637,8 +1637,8 @@ console.log('pageNumbers = %o', pageNumbers);
 console.log('>>>>>> pageOrder=%o', pageOrder);
 
         this.pdfDoc = jzinDesigner.cloneObject(this.doc);
-        //this.pdfDoc.meta.author 
-        this.pdfDoc.meta.subject = 'guid=' + this.projId + ' ' + this.url();
+        this.pdfDoc.meta.author = 'Unknown JZIN User';  //FIXME
+        this.pdfDoc.meta.subject = this.url() + ' [' + this.projId + ']';
         this.pdfDoc.meta.creator = 'jzin.org jzinDesigner ' + jzinDesigner.version;
         this.pdfDoc.document.layout = {paperSize: paperSize};
         this.pdfDoc.document.pages = [];

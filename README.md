@@ -27,3 +27,35 @@ The [generators](generators/) directory contains tools to create jzin from vario
 ### More info
 
 Information and demonstrations can be found at [jzin.org](https://jzin.org).
+
+
+---------------------
+
+### To-Do: pre-launch
+
+* Instagram import
+* Gutters
+* Better text UI
+  * Deprecate overflow/wrap for now
+* Image UI
+* Add/Remove elements on page
+  * Expand undo buffer
+* Book signatures (hopefully)
+* Better image options (fitInto etc)
+* Bug squashing
+* Web presence (minimal)
+
+### To-Do: future wishlist
+
+* Add images (url, upload, paste) 
+* SVG support
+* Mixed fonts/weight/etc
+  * Markdown support
+  * Emoji
+* Twitter import
+* Halftoning of images
+* TOC into PDF
+* Web presence - expanded
+* Graphic support (lines, circles, etc.)
+* Rotation
+
