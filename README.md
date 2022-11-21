@@ -43,7 +43,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * Book signatures (hopefully)
 * Better image options (fitInto etc)
 * Bug squashing
-* Web presence (minimal)
+* ~~Web presence (minimal)~~
 
 ### To-Do: future wishlist
 
