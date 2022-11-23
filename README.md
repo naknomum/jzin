@@ -34,6 +34,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 ### To-Do: pre-launch
 
 * Instagram import
+* Strip newlines from text
 * Gutters
 * Better text UI
   * Deprecate overflow/wrap for now
