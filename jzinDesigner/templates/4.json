@@ -1,44 +1,45 @@
 {
 	"meta": {
-		"title": "Half-size (US Letter)"
+		"title": "Quarter-size (A4)"
 	},
 
 	"document": {
 
 		"layout": {
 			"across": 2,
-			"down": 1,
-			"gutter": 36,
+			"down": 2,
+			"gutter": 20,
+			"generalScale": 0.6,
 			"paperSize": [
-				792,
-				612
+				595,
+				842
 			]
 		},
 
 		"pages": [
 
 			{
-				"size": [0, 0, 360, 612],
+				"size": [0, 0, 277.5, 421],
 				"elements": [
 
 					{
 						"elementType": "text",
 						"options": { "align": "center" },
 						"overflow": false,
-						"position": [12, 570],
+						"position": [12, 390],
 						"font": "OpenSans regular",
-						"fontSize": 30,
-						"height": 37,
-						"width": 336,
+						"fontSize": 20,
+						"height": 24,
+						"width": 254,
 						"field": "title"
 					},
 
 					{
 						"elementType": "image",
 						"field": "image",
-						"position": [12, 178],
-						"width": 336,
-						"height": 336
+						"position": [12, 110],
+						"width": 254,
+						"height": 254
 					},
 
 					{
@@ -46,11 +47,11 @@
 						"options": { "align": "justified" },
 						"textType": "paragraph",
 						"overflow": true,
-						"position": [12, 12],
+						"position": [12, 18],
 						"font": "SourceSerifPro regular",
-						"fontSize": 12,
-						"height": 150,
-						"width": 336,
+						"fontSize": 10,
+						"height": 82,
+						"width": 254,
 						"field": "caption"
 					}
 				]

@@ -1,6 +1,6 @@
 {
 	"meta": {
-		"title": "Half-size (US Letter)"
+		"title": "Half-size (A4)"
 	},
 
 	"document": {
@@ -10,26 +10,26 @@
 			"down": 1,
 			"gutter": 36,
 			"paperSize": [
-				792,
-				612
+				842,
+				595
 			]
 		},
 
 		"pages": [
 
 			{
-				"size": [0, 0, 360, 612],
+				"size": [0, 0, 385, 595],
 				"elements": [
 
 					{
 						"elementType": "text",
 						"options": { "align": "center" },
 						"overflow": false,
-						"position": [12, 570],
+						"position": [12, 554],
 						"font": "OpenSans regular",
 						"fontSize": 30,
 						"height": 37,
-						"width": 336,
+						"width": 361,
 						"field": "title"
 					},
 
@@ -37,8 +37,8 @@
 						"elementType": "image",
 						"field": "image",
 						"position": [12, 178],
-						"width": 336,
-						"height": 336
+						"width": 361,
+						"height": 361
 					},
 
 					{
@@ -50,7 +50,7 @@
 						"font": "SourceSerifPro regular",
 						"fontSize": 12,
 						"height": 150,
-						"width": 336,
+						"width": 361,
 						"field": "caption"
 					}
 				]

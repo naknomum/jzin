@@ -5,7 +5,7 @@ class jzinDesigner {
     static fonts = null;
     static fontSelect = null;
 
-    static numTemplates = 4;
+    static numTemplates = 6;
     static templates = [];
 
     static resizeTimer = null;

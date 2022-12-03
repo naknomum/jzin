@@ -38,7 +38,7 @@
 						"font": "OpenSans regular",
 						"fontSize": 30,
 						"height": 37,
-						"width": 372,
+						"width": 336,
 						"field": "title"
 					},
 
@@ -52,7 +52,7 @@
 						"font": "SourceSerifPro regular",
 						"fontSize": 12,
 						"height": 190,
-						"width": 150,
+						"width": 124,
 						"field": "caption"
 					},
 
@@ -76,7 +76,7 @@
 						"font": "OpenSans regular",
 						"fontSize": 30,
 						"height": 37,
-						"width": 372,
+						"width": 336,
 						"field": "title"
 					},
 
@@ -90,7 +90,7 @@
 						"font": "SourceSerifPro regular",
 						"fontSize": 12,
 						"height": 190,
-						"width": 150,
+						"width": 124,
 						"field": "caption"
 					}
 				]
