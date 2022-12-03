@@ -1,57 +1,96 @@
 {
 	"meta": {
-		"title": "Quarter-size (US Letter)"
+		"title": "Half-size: 2-up (US Letter)"
 	},
 
 	"document": {
 
 		"layout": {
 			"across": 2,
-			"down": 2,
-			"gutter": 20,
-			"generalScale": 0.6,
+			"down": 1,
+			"gutter": 36,
 			"paperSize": [
-				612,
-				792
+				792,
+				612
 			]
 		},
 
 		"pages": [
 
 			{
-				"size": [0, 0, 286, 396],
+				"size": [0, 0, 360, 612],
 				"elements": [
+					{
+						"itemOffset": 0,
+						"elementType": "image",
+						"field": "image",
+						"position": [12, 350],
+						"width": 200,
+						"height": 200
+					},
 
 					{
+						"itemOffset": 0,
 						"elementType": "text",
 						"options": { "align": "center" },
 						"overflow": false,
-						"position": [12, 360],
+						"position": [12, 570],
 						"font": "OpenSans regular",
-						"fontSize": 20,
-						"height": 24,
-						"width": 262,
+						"fontSize": 30,
+						"height": 37,
+						"width": 372,
 						"field": "title"
 					},
 
 					{
-						"elementType": "image",
-						"field": "image",
-						"position": [12, 88],
-						"width": 262,
-						"height": 262
-					},
-
-					{
+						"itemOffset": 0,
 						"elementType": "text",
 						"options": { "align": "justified" },
 						"textType": "paragraph",
 						"overflow": true,
-						"position": [12, 18],
+						"position": [226, 358],
 						"font": "SourceSerifPro regular",
-						"fontSize": 10,
-						"height": 62,
-						"width": 262,
+						"fontSize": 12,
+						"height": 190,
+						"width": 150,
+						"field": "caption"
+					},
+
+
+
+					{
+						"itemOffset": 1,
+						"elementType": "image",
+						"field": "image",
+						"position": [12, 50],
+						"width": 200,
+						"height": 200
+					},
+
+					{
+						"itemOffset": 1,
+						"elementType": "text",
+						"options": { "align": "center" },
+						"overflow": false,
+						"position": [12, 270],
+						"font": "OpenSans regular",
+						"fontSize": 30,
+						"height": 37,
+						"width": 372,
+						"field": "title"
+					},
+
+					{
+						"itemOffset": 1,
+						"elementType": "text",
+						"options": { "align": "justified" },
+						"textType": "paragraph",
+						"overflow": true,
+						"position": [226, 58],
+						"font": "SourceSerifPro regular",
+						"fontSize": 12,
+						"height": 190,
+						"width": 150,
 						"field": "caption"
 					}
 				]
