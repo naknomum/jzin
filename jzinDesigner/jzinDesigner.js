@@ -295,6 +295,10 @@ class jzinDesigner {
         let me = this;
         let scale = parseFloat(el.parentElement.dataset.scale);
 
+        let title = document.createElement('div');
+        title.setAttribute('class', 'jzd-ui-section-title');
+        title.innerHTML = this.text('Font and size');
+        this.uiEl.append(title);
         fsel.addEventListener('change', function(ev) {
             let ptr = me.elementPointer(pgNum, elNum);
             ptr.font = ev.target.value;
@@ -302,19 +306,6 @@ class jzinDesigner {
             me.elementChanged(el);
         });
         this.uiEl.appendChild(fsel);
-
-        let asel = document.createElement('select');
-        asel.innerHTML = '<option>left</option><option>center</option><option>right</option>';
-        asel.value = (elData.options && elData.options.align) || 'left';
-        asel.addEventListener('change', function(ev) {
-            let ptr = me.elementPointer(pgNum, elNum);
-            let opts = ptr.options || {};
-            opts.align = ev.target.value;
-            ptr.options = opts;
-            me.setTextElementStyle(el, ptr);
-            me.elementChanged(el);
-        });
-        this.uiEl.appendChild(asel);
 
         let sizeInp = document.createElement('input');
         sizeInp.style.width = '3em';
@@ -327,9 +318,34 @@ class jzinDesigner {
         });
         this.uiEl.appendChild(sizeInp);
 
+        this.uiEl.appendChild(document.createElement('hr'));
+
+        title = document.createElement('div');
+        title.setAttribute('class', 'jzd-ui-section-title');
+        title.innerHTML = this.text('Alignment and wrapping');
+        this.uiEl.append(title);
+        let asel = document.createElement('select');
+        let aligns = ['left', 'center', 'right'];
+        for (let i = 0 ; i < aligns.length ; i++) {
+            let opt = document.createElement('option');
+            opt.setAttribute('value', aligns[i]);
+            opt.innerHTML = this.text(aligns[i]);
+            asel.appendChild(opt);
+        }
+        asel.value = (elData.options && elData.options.align) || 'left';
+        asel.addEventListener('change', function(ev) {
+            let ptr = me.elementPointer(pgNum, elNum);
+            let opts = ptr.options || {};
+            opts.align = ev.target.value;
+            ptr.options = opts;
+            me.setTextElementStyle(el, ptr);
+            me.elementChanged(el);
+        });
+        this.uiEl.appendChild(asel);
+
         let pcheck = document.createElement('input');
         pcheck.setAttribute('type', 'checkbox');
-        pcheck.setAttribute('title', 'paragraph (wrap)');
+        pcheck.setAttribute('id', 'text-paragraph-wrap');
         if (elData.textType == 'paragraph') pcheck.setAttribute('checked', null);
         pcheck.addEventListener('change', function(ev) {
             let ptr = me.elementPointer(pgNum, elNum);
@@ -342,10 +358,14 @@ class jzinDesigner {
             me.elementChanged(el);
         });
         this.uiEl.appendChild(pcheck);
+        let label = document.createElement('label');
+        label.setAttribute('for', 'text-paragraph-wrap');
+        label.innerHTML = this.text('Wrap paragraph');
+        this.uiEl.appendChild(label);
 
         let ocheck = document.createElement('input');
         ocheck.setAttribute('type', 'checkbox');
-        ocheck.setAttribute('title', 'overflow');
+        ocheck.setAttribute('id', 'text-overflow');
         if (elData.overflow) ocheck.setAttribute('checked', null);
         ocheck.addEventListener('change', function(ev) {
             let ptr = me.elementPointer(pgNum, elNum);
@@ -354,6 +374,10 @@ class jzinDesigner {
             me.elementChanged(el);
         });
         this.uiEl.appendChild(ocheck);
+        label = document.createElement('label');
+        label.setAttribute('for', 'text-overflow');
+        label.innerHTML = this.text('Show overflow');
+        this.uiEl.appendChild(label);
     }
 
     initTemplateUI() {
