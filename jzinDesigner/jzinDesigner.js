@@ -1372,8 +1372,11 @@ console.log('pageNumbers = %o', pageNumbers);
             //el.addEventListener('input', function(ev) {});
             el.addEventListener('blur', function(ev) {
                 // we use innerText here cuz we have the corner divs in here too.  :eyeroll:
-                if (me.doc.document.pages[ident[0]].elements[ident[1]].text != this.innerText) {
-                    me.doc.document.pages[ident[0]].elements[ident[1]].text = this.innerText;
+                let txt = this.innerText;
+                txt = txt.replaceAll('\n', '').replaceAll('\r', '');
+                el.innerText = txt;  //FIXME this kills corner divs :(
+                if (me.doc.document.pages[ident[0]].elements[ident[1]].text != txt) {
+                    me.doc.document.pages[ident[0]].elements[ident[1]].text = txt;
                     me.elementChanged(this);
                 }
             });
