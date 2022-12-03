@@ -10,20 +10,20 @@ class jzinDesigner {
 
     static resizeTimer = null;
 
-    static templateFeed = [
+    static templateFeedBase = [
             {
                     "image": "templates/image-placeholder.png",
-                    "author": "{author0}",
-                    "title": "{title0}",
-                    "caption": "{The caption for Item 0}",
+                    "author": "author {i}",
+                    "title": "title {i}",
+                    "caption": "caption {i}",
                     "time": "1999-12-31T00:00:00+00:00",
                     "hashtags": [ "hashtag", "tag", "jzin", "item0" ]
             },
             {
                     "image": "templates/image-placeholder.png",
-                    "author": "{author1}",
-                    "title": "{title1}",
-                    "caption": "{The caption for Item 1}",
+                    "author": "author {i}",
+                    "title": "title {i}",
+                    "caption": "caption {i}",
                     "time": "1999-12-31T01:01:01+00:00",
                     "hashtags": [ "hashtag", "tag", "jzin", "item1" ]
             }
@@ -163,7 +163,11 @@ class jzinDesigner {
         }
         this.updatePreference('language', this.language);
         let me = this;
-        this.readLanguageMap(function(data) { me.languageMap = data; me.initUI(); });
+        this.readLanguageMap(function(data) {
+            me.languageMap = data;
+            me.updateTemplateFeed();
+            me.initUI();
+        });
     }
 
     changeLanguage(lang) {
@@ -171,13 +175,26 @@ class jzinDesigner {
         this.language = lang;
         this.updatePreference('language', lang);
         let me = this;
-        this.readLanguageMap(function(data) { me.languageMap = data; document.location.reload(); });
+        this.readLanguageMap(function(data) {
+            me.languageMap = data;
+            me.updateTemplateFeed();
+            document.location.reload();
+        });
     }
 
     readLanguageMap(callback) {
         fetch('lang/' + this.language + '.json')
             .then((resp) => resp.json())
             .then((data) => callback(data));
+    }
+
+    updateTemplateFeed() {
+        jzinDesigner.templateFeed = jzinDesigner.templateFeedBase;
+        for (let i = 0 ; i < jzinDesigner.templateFeed.length ; i++) {
+            for (let key of ['author', 'title', 'caption']) {
+                jzinDesigner.templateFeed[i][key] = '&lt; ' + this.text('template-feed-' + key, {i: i}) + ' &gt;';
+            }
+        }
     }
 
     initTemplates() {
@@ -266,12 +283,12 @@ class jzinDesigner {
     }
 
     gotTemplate(i, tdata) {
-        console.debug('template %d: %s', i, tdata.meta.title);
+        console.debug('template %d: %s', i, tdata.meta.title['en-us']);
         jzinDesigner.templates[i] = tdata;
         this.initUI();
     }
 
-    text(str, lang, sub) {
+    text(str, sub) {
         sub = sub || {};
         str = this.languageMap[str] || str;
         const regex = /{(\w+)}/;
@@ -448,7 +465,7 @@ class jzinDesigner {
             let topt = document.createElement('option');
             if (i == this.activeTemplate) topt.setAttribute('selected', '');
             topt.setAttribute('value', i);
-            let tname = jzinDesigner.templates[i].meta.title;
+            let tname = jzinDesigner.templates[i].meta.title[this.language] || jzinDesigner.templates[i].meta.title['en-us'];
             if (jzinDesigner.templates[i].meta._modified) tname += ' &#9733;';
             topt.innerHTML = tname;
             tsel.appendChild(topt);

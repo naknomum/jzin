@@ -1,4 +1,8 @@
 {
+   "template-feed-author": "Auteur {i}",
+   "template-feed-title": "Titre {i}",
+   "template-feed-caption": "Légende de l'élément {i}",
+
    "Insert blank page" : "Insérer une page vierge",
    "restore deleted pages" : "restaurer les pages supprimées",
    "Chapter Title" : "Titre du Chapitre",

@@ -1,6 +1,9 @@
 {
 	"meta": {
-		"title": "Half-size (US Letter)"
+		"title": {
+			"en-us": "Half-size (US Letter)",
+			"fr": "Demi-page (US Lettre)"
+		}
 	},
 
 	"document": {

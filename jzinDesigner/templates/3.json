@@ -1,6 +1,9 @@
 {
 	"meta": {
-		"title": "Quarter-size (US Letter)"
+		"title": {
+			"en-us": "Quarter-size (US Letter)",
+			"fr": "Quart de page (US Lettre)"
+		}
 	},
 
 	"document": {

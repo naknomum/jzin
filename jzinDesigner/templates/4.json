@@ -1,6 +1,9 @@
 {
 	"meta": {
-		"title": "Quarter-size (A4)"
+		"title": {
+			"en-us": "Quarter-size (A4)",
+			"fr": "Quart de page (A4)"
+		}
 	},
 
 	"document": {

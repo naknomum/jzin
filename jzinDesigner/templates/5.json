@@ -1,6 +1,9 @@
 {
 	"meta": {
-		"title": "Quarter-size: spans-two (US Letter)"
+		"title": {
+			"en-us": "Quarter-size: spans two (US Letter)",
+			"fr": "Quart de page: s'étend sur deux (US Lettre)"
+		}
 	},
 
 	"document": {

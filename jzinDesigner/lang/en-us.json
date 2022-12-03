@@ -1,4 +1,8 @@
 {
+   "template-feed-author": "Author {i}",
+   "template-feed-title": "Title {i}",
+   "template-feed-caption": "Caption for item {i}",
+
    "cover-front-inside" : "Inside of front cover",
    "left" : "left",
    "Chapter Title" : "Chapter Title",
