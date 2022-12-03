@@ -70,7 +70,7 @@ class jzinDesigner {
         this.uiEl = document.createElement('div');
         this.uiEl.style.position = 'absolute';
         this.uiEl.style.width = '300px';
-        this.uiEl.style.height = '450px';
+        this.uiEl.style.height = '480px';
         this.uiEl.style.top = '10px';
         this.uiEl.style.right = '50%';
         this.uiEl.style.backgroundColor = 'rgba(240,240,240,0.6)';
