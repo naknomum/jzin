@@ -286,7 +286,27 @@ class jzinDesigner {
     }
 
     setUIImage(el, elData, pgNum, elNum) {
-        this.uiEl.innerHTML = pgNum + ',' + elNum + ':' + JSON.stringify(elData);
+        this.uiEl.innerHTML = '';
+        let title = document.createElement('div');
+        title.setAttribute('class', 'jzd-ui-section-title');
+        title.innerHTML = this.text('Image Properties');
+        this.uiEl.append(title);
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        title = document.createElement('div');
+        title.setAttribute('class', 'jzd-ui-subtitle');
+        title.innerHTML = '⚠️  '  +this.text('NOT YET IMPLEMENTED');
+        this.uiEl.append(title);
+
+        let tmp = document.createElement('div');
+        tmp.innerHTML = '<img src="ui-images/image-inside.png"/> ' + this.text('Fit inside');
+        this.uiEl.append(tmp);
+        tmp = document.createElement('div');
+        tmp.innerHTML = '<img src="ui-images/image-outside.png"/> ' + this.text('Fit outside');
+        this.uiEl.append(tmp);
+        tmp = document.createElement('div');
+        tmp.innerHTML = '<img src="ui-images/image-outside-crop.png"/> ' + this.text('Fit outside, cropped');
+        this.uiEl.append(tmp);
     }
 
     setUIText(el, elData, pgNum, elNum) {

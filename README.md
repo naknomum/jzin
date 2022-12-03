@@ -34,21 +34,22 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 ### To-Do: pre-launch
 
 * Instagram import
-* Strip newlines from text
+* ~~Strip newlines from text~~
 * Gutters
-* Better text UI
-  * Deprecate overflow/wrap for now
-* Image UI
+* ~~Better text UI~~
+  * Deprecate overflow/wrap for now (?)
+* ~~Image UI~~
+  * Better image options (fitInto etc)
 * Add/Remove elements on page
   * Expand undo buffer
 * Book signatures (hopefully)
-* Better image options (fitInto etc)
 * Bug squashing
 * ~~Web presence (minimal)~~
 
 ### To-Do: future wishlist
 
 * Add images (url, upload, paste) 
+* Add fonts (url, upload)
 * SVG support
 * Mixed fonts/weight/etc
   * Markdown support
