@@ -36,7 +36,9 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * Instagram import
 * ~~Strip newlines from text~~
 * Gutters
-* Preferences (language)
+* Preferences
+  * ~~Language~~
+  * Paper size
 * ~~Better text UI~~
   * Deprecate overflow/wrap for now (?)
 * ~~Image UI~~

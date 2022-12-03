@@ -29,10 +29,16 @@ class jzinDesigner {
             }
     ];
 
-    static languages = [
-        'en-us',
-        'fr'
-    ];
+    static languageMap = {
+        'en-us': {
+            'title': 'US English',
+            'icon': '🇺🇸'
+        },
+        'fr': {
+            'title': 'Le français',
+            'icon': '🇫🇷'
+        }
+    };
 
     constructor(el, projId) {
         this.projId = projId;
@@ -49,9 +55,34 @@ class jzinDesigner {
     }
 
     init() {
+        let me = this;
+
+        jzinDesigner.languages = Object.keys(jzinDesigner.languageMap).sort();
         this.preferences = jzinDesigner.localStorageGet('preferences') || {};
         this.setLanguageFromBrowser();
-        let me = this;
+        this.prefUI = document.createElement('div');
+        this.prefUI.classList.add('jzd-preferences-ui');
+        let pbutton = document.createElement('div');
+        pbutton.classList.add('jzd-preferences-button');
+        pbutton.innerHTML = '⚙️';
+        pbutton.addEventListener('click', function(ev) { me.togglePreferences(ev); });
+        this.prefUI.appendChild(pbutton);
+        let langMenu = document.createElement('select');
+        langMenu.addEventListener('change', function(ev) {
+            me.changeLanguage(this.value);
+            ev.stopPropagation();
+        });
+        for (let i = 0 ; i < jzinDesigner.languages.length ; i++) {
+            let opt = document.createElement('option');
+            let lkey = jzinDesigner.languages[i];
+            opt.setAttribute('value', lkey);
+            opt.innerHTML = jzinDesigner.languageMap[lkey].icon + ' ' + jzinDesigner.languageMap[lkey].title + ' [' + lkey + ']';
+            langMenu.appendChild(opt);
+        }
+        langMenu.value = this.language;
+        this.prefUI.appendChild(langMenu);
+        this.el.appendChild(this.prefUI);
+
         window.addEventListener('resize', function(ev) {
             clearTimeout(jzinDesigner.resizeTimer);
             jzinDesigner.resizeTimer = setTimeout(function() { me.windowResized(ev); }, 600);
@@ -99,6 +130,10 @@ class jzinDesigner {
         if (level) cls += '-' + level;
         this.messageEl.setAttribute('class', cls);
         this.messageEl.innerHTML = msg;
+    }
+
+    togglePreferences() {
+        this.prefUI.classList.toggle('jzd-preferences-open');
     }
 
     updatePreference(key, value) {
