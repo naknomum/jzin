@@ -1754,13 +1754,13 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
                         console.info('skipping x=%d, y=%d, pnum=%d due to no source page', x, y, pnum);
                         continue;
                     }
-                    let pw = this.doc.document.pages[pnum].size[2] - this.doc.document.pages[pnum].size[0];
+                    let pw = this.doc.document.pages[pnum].size[2] - this.doc.document.pages[pnum].size[0] + gutter;
                     let ph = this.doc.document.pages[pnum].size[3] - this.doc.document.pages[pnum].size[1];
                     if (pw > partW) console.warn('placed page pw=%d > partW=%d', pw, partW);
                     if (ph > partH) console.warn('placed page ph=%d > partH=%d', ph, partH);
                     let dx = (partW - pw) / 2;
                     let dy = (partH - ph) / 2;
-                    let offsetX = partW * x + dx;
+                    let offsetX = partW * x + dx + gutter * (x % 2);
                     let offsetY = partH * (numDown - y - 1) + dy;
                     for (let elNum = 0 ; elNum < this.doc.document.pages[pnum].elements.length ; elNum++) {
                         let element = jzinDesigner.cloneObject(this.doc.document.pages[pnum].elements[elNum]);

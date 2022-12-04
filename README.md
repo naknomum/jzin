@@ -35,7 +35,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 
 * Instagram import
 * ~~Strip newlines from text~~
-* Gutters
+* ~~Gutters~~
 * Preferences
   * ~~Language~~
   * Paper size
