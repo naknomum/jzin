@@ -42,7 +42,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
   * Deprecate overflow/wrap for now (?)
 * ~~Image UI~~
   * Better image options (fitInto etc)
-* Add/~~Remove~~ elements on page
+* ~~Add/Remove elements on page~~
   * ~~Expand undo buffer~~
 * Book signatures (hopefully)
 * Bug squashing
@@ -62,4 +62,5 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * Web presence - expanded
 * Graphic support (lines, circles, etc.)
 * Rotation
+* Maybe improvements to have real undo? (all operations)
 

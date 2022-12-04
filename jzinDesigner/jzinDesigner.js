@@ -551,6 +551,69 @@ class jzinDesigner {
 
         this.uiEl.appendChild(document.createElement('hr'));
         let b = document.createElement('button');
+        b.innerHTML = this.text('Add text');
+        b.addEventListener('click', function(ev) {
+            let pw = me.doc.document.pages[me.pageCurrent].size[2] - me.doc.document.pages[me.pageCurrent].size[0];
+            let ph = me.doc.document.pages[me.pageCurrent].size[3] - me.doc.document.pages[me.pageCurrent].size[1];
+            let fontSize = me.generalScaleFontSize(18);
+            let newEl = {
+                elementType: 'text',
+                font: me.defaultFont(),
+                fontSize: fontSize,
+                options: {align: 'left'},
+                text: me.text('New text element.'),
+                position: [0.2 * pw, 0.8 * ph],
+                height: fontSize * 2.5,
+                width: pw * 0.6
+            };
+            me.doc.document.pages[me.pageCurrent].elements.push(newEl);
+
+            let depth = me.doc.document.pages[me.pageCurrent].elements.length - 1;
+            let added = me.addElement(me.pageBackdrop, newEl, depth);
+            new Draggy(added);
+            added.addEventListener('draggy.moved', function(ev) { me.elementMoved(ev); });
+            added.addEventListener('click', function(ev) { me.elementClicked(ev); });
+            added.id = me.pageCurrent + '.' + depth;
+
+            me.docAltered();
+            me.previewPages(me.doc);
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(b);
+        b = document.createElement('button');
+        b.innerHTML = this.text('Add image');
+        b.setAttribute('disabled', 'disabled');
+        b.setAttribute('title', this.text('NOT YET IMPLEMENTED'));
+        b.addEventListener('click', function(ev) {
+            ev.stopPropagation();
+            return;
+            let pw = me.doc.document.pages[me.pageCurrent].size[2] - me.doc.document.pages[me.pageCurrent].size[0];
+            let ph = me.doc.document.pages[me.pageCurrent].size[3] - me.doc.document.pages[me.pageCurrent].size[1];
+            let imgW = pw * 0.8;
+            let newEl = {
+                elementType: 'image',
+                position: [(pw - imgW) / 2, (ph - imgW) * 0.8],
+                height: imgW,
+                width: imgW,
+                image: 'templates/image-placeholder.png'
+            };
+            me.doc.document.pages[me.pageCurrent].elements.push(newEl);
+
+            let depth = me.doc.document.pages[me.pageCurrent].elements.length - 1;
+            let added = me.addElement(me.pageBackdrop, newEl, depth);
+            new Draggy(added);
+            added.addEventListener('draggy.moved', function(ev) { me.elementMoved(ev); });
+            added.addEventListener('click', function(ev) { me.elementClicked(ev); });
+            added.id = me.pageCurrent + '.' + depth;
+
+            me.docAltered();
+            me.previewPages(me.doc);
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(b);
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        b = document.createElement('button');
         b.innerHTML = '&#8593;';
         b.addEventListener('click', function(ev) {
             if (me.pageCurrent < 1) return;
