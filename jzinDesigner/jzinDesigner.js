@@ -837,8 +837,9 @@ console.log('OUCH %o', pnum);
                 fontSize: fontSize,
                 font: this.defaultFont(),
                 options: {align: 'center'},
-                position: [0, (size[3] - size[1]) * 0.6],
-                height: fontSize * 1.2,
+                textType: 'paragraph',
+                position: [0, (size[3] - size[1]) * 0.5],
+                height: fontSize * 2.5,
                 width: size[2] - size[0],
                 text: this.text('Chapter Title')
             }]
@@ -864,8 +865,9 @@ console.log('OUCH %o', pnum);
                     fontSize: fontSize,
                     font: this.defaultFont(),
                     options: {align: 'center'},
-                    position: [0, (size[3] - size[1]) * 0.7],
-                    height: fontSize * 1.2,
+                    textType: 'paragraph',
+                    position: [0, (size[3] - size[1]) * 0.6],
+                    height: fontSize * 2.5,
                     width: size[2] - size[0],
                     text: this.doc.meta.title || this.text('Cover Page')
                 }]
