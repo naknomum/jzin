@@ -320,10 +320,11 @@ class jzinDesigner {
                 this.message(this.text('Choose a template. Edit the template and change how all pages will look.'));
             } else {
                 this.initDocUI();
+                let pc = this.pageCurrent;
                 this.pageCurrent = null;
-                this.pageGo(0);
+                this.pageGo(pc);
                 this.previewPages(this.doc);
-                this.previewActivate(0);
+                this.previewActivate(pc);
             }
             return;
         }
@@ -338,6 +339,7 @@ class jzinDesigner {
     }
 
     setUIImage(el, elData, pgNum, elNum) {
+        let me = this;
         this.uiEl.innerHTML = '';
         let title = document.createElement('div');
         title.setAttribute('class', 'jzd-ui-section-title');
@@ -359,6 +361,18 @@ class jzinDesigner {
         tmp = document.createElement('div');
         tmp.innerHTML = '<img src="ui-images/image-outside-crop.png"/> ' + this.text('Fit outside, cropped');
         this.uiEl.append(tmp);
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        let del = document.createElement('button');
+        del.innerHTML = this.text('Delete');
+        del.addEventListener('click', function(ev) {
+            me.deleteElement(pgNum, elNum);
+            me.repaginate();
+            me.docAltered();
+            me.refreshAndGo(pgNum);
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(del);
     }
 
     setUIText(el, elData, pgNum, elNum) {
@@ -450,6 +464,18 @@ class jzinDesigner {
         label.setAttribute('for', 'text-overflow');
         label.innerHTML = this.text('Show overflow');
         this.uiEl.appendChild(label);
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        let del = document.createElement('button');
+        del.innerHTML = this.text('Delete');
+        del.addEventListener('click', function(ev) {
+            me.deleteElement(pgNum, elNum);
+            me.repaginate();
+            me.docAltered();
+            me.refreshAndGo(pgNum);
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(del);
     }
 
     initTemplateUI() {
@@ -865,6 +891,7 @@ console.log('OUCH %o', pnum);
         this._restoreMenu.innerHTML = '<option>' + this.text('restore deleted pages') + '</option>';
         if (!this.doc._trash || !this.doc._trash.length) return;
         for (let i = 0 ; i < this.doc._trash.length ; i++) {
+            if (!this.doc._trash[i].elements) continue;  //not a page
             let opt = document.createElement('option');
             opt.value = i;
             opt.innerHTML = this.doc._trash[i]._delName;
@@ -873,7 +900,7 @@ console.log('OUCH %o', pnum);
     }
 
     restorePage(trashOffset) {
-        if (!this.doc._trash || (trashOffset >= this.doc._trash.length)) return;
+        if (!this.doc._trash || (trashOffset >= this.doc._trash.length) || !this.doc._trash[trashOffet].elements) return;
         let restore = this.doc._trash.splice(trashOffset, 1)[0];
         let target = restore._delPageNum;
         if (target > this.numDocPages()) target = this.numDocPages();
@@ -893,6 +920,55 @@ console.log('OUCH %o', pnum);
         del._delPageNum = pageNum;
         this.doc._trash.push(del);
         this.message(this.text('Page deleted. You may undo this with the restore menu.'), 'warning');
+    }
+
+    deleteElement(pageNum, elNum) {
+        if ((pageNum < 0) || (pageNum >= this.numDocPages())) return;
+        if ((elNum < 0) || !this.doc.document.pages[pageNum].elements || (elNum >= this.doc.document.pages[pageNum].elements.length)) return;
+        if (!this.doc._trash) this.doc._trash = [];
+        let del = this.doc.document.pages[pageNum].elements.splice(elNum, 1)[0];
+        del._delPageNum = pageNum;
+        del._delElementNum = elNum;
+        this.doc._trash.push(del);
+    }
+
+    // just does the work, but no display change, docAltered(), or repagination etc
+    undoInternal() {
+        if (!this.doc._trash || !this.doc._trash.length) return;
+        let obj = this.doc._trash.pop();
+        let target = obj._delPageNum;
+        delete obj._delPageNum;
+        if (obj.elements) {  // restore a page
+            if (target > this.numDocPages()) target = this.numDocPages();
+            delete obj._delName;
+            this.doc.document.pages.splice(target, 0, obj);
+            this.message(this.text('The deleted page has been restored.'));
+            return {pageNum: target};
+        }
+
+        let elTarget = obj._delElementNum;
+        delete obj._delElementNum;
+        if (target > this.numDocPages()) {
+            console.warn('page gone for undo target=%d for element=%o', target, obj);
+            return;
+        }
+        if (elTarget > this.doc.document.pages[target].elements.length) elTarget = this.doc.document.pages[target].elements.length;
+        this.doc.document.pages[target].elements.splice(elTarget, 0, obj);
+        return {pageNum: target, elementNum: elTarget};
+    }
+
+    // does display stuff too (if applicable)
+    undo() {
+        let restored = this.undoInternal();
+        if (!restored) return;
+        this.repaginate();
+        this.docAltered();
+        this.refreshAndGo(restored.pageNum);
+        if (restored.elementNum || (restored.elementNum == 0)) {
+            let el = this.getDisplayedElement(restored.elementNum);
+            if (el) this.activateElement(el);
+        }
+        return restored;
     }
 
     swapPages(a, b) {
@@ -1383,6 +1459,12 @@ console.log('pageNumbers = %o', pageNumbers);
         }
     }
 
+    getDisplayedElement(i) {
+        let pgEl = document.getElementsByClassName('jzd-page-backdrop')[0];
+        if (!pgEl) return;
+        return pgEl.children[i];
+    }
+
     elementChanged(el) {
         let ident = el.id.split('.');
         console.info('element changed! %d,%d %o', ident[0], ident[1], el);
@@ -1535,6 +1617,16 @@ console.log('pageNumbers = %o', pageNumbers);
             ev.stopPropagation();
             ev.preventDefault();
             this.previewScrollTo(this.pageCurrent);
+        } else if (ev.code == 'Delete') {
+            if (!this.activeElement) return;
+            let pe = this.activeElement.id.split('.');
+            this.deleteElement(pe[0], pe[1]);
+            this.repaginate();
+            this.docAltered();
+            this.refreshAndGo(pe[0]);
+            ev.stopPropagation();
+        } else if ((ev.code == 'KeyZ') && ev.ctrlKey) {
+            this.undo();
         }
     }
 

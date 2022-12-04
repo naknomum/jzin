@@ -36,15 +36,14 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * Instagram import
 * ~~Strip newlines from text~~
 * ~~Gutters~~
-* Preferences
+* ~~Preferences~~
   * ~~Language~~
-  * Paper size
 * ~~Better text UI~~
   * Deprecate overflow/wrap for now (?)
 * ~~Image UI~~
   * Better image options (fitInto etc)
-* Add/Remove elements on page
-  * Expand undo buffer
+* Add/~~Remove~~ elements on page
+  * ~~Expand undo buffer~~
 * Book signatures (hopefully)
 * Bug squashing
 * ~~Web presence (minimal)~~
