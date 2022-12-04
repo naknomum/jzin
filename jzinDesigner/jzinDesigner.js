@@ -101,7 +101,7 @@ class jzinDesigner {
         this.uiEl = document.createElement('div');
         this.uiEl.style.position = 'absolute';
         this.uiEl.style.width = '300px';
-        this.uiEl.style.height = '480px';
+        this.uiEl.style.minHeight = '450px';
         this.uiEl.style.top = '10px';
         this.uiEl.style.right = '50%';
         this.uiEl.style.backgroundColor = 'rgba(240,240,240,0.6)';
@@ -551,6 +551,68 @@ class jzinDesigner {
 
         this.uiEl.appendChild(document.createElement('hr'));
         let b = document.createElement('button');
+        b.innerHTML = '&#8593;';
+        b.addEventListener('click', function(ev) {
+            if (me.pageCurrent < 1) return;
+            me.swapPages(me.pageCurrent, me.pageCurrent - 1);
+            me.repaginate();
+            me.docAltered();
+            me.pageCurrent = me.pageCurrent - 1;
+            me.refreshAndGo(me.pageCurrent);
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(b);
+        let m = document.createElement('span');
+        m.innerHTML = this.text('Move this page');
+        this.uiEl.appendChild(m);
+        b = document.createElement('button');
+        b.innerHTML = '&#8595;';
+        b.addEventListener('click', function(ev) {
+            if (me.pageCurrent >= (me.numDocPages() - 1)) return;
+            me.swapPages(me.pageCurrent, me.pageCurrent + 1);
+            me.repaginate();
+            me.docAltered();
+            me.pageCurrent = me.pageCurrent + 1;
+            me.refreshAndGo(me.pageCurrent);
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(b);
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        b = document.createElement('button');
+        b.innerHTML = this.text('Delete this page');
+        b.addEventListener('click', function(ev) {
+            me.deletePage(me.pageCurrent);
+            me.updateRestoreMenu();
+            if (me.pageCurrent >= me.numDocPages()) me.pageCurrent = me.numDocPages() - 1;
+            me.repaginate();
+            me.docAltered();
+            me.refreshAndGo(me.pageCurrent);
+            ev.stopPropagation();
+        });
+        this.uiEl.appendChild(b);
+
+        let r = document.createElement('select');
+        r.addEventListener('change', function(ev) {
+            let rpnum = me.restorePage(parseInt(this.value));
+            me.updateRestoreMenu();
+            me.pageCurrent = rpnum;
+            me.repaginate();
+            me.docAltered();
+            me.refreshAndGo(me.pageCurrent);
+            ev.stopPropagation();
+        });
+        this._restoreMenu = r;
+        this.uiEl.appendChild(r);
+        this.updateRestoreMenu();
+
+        this.uiEl.appendChild(document.createElement('hr'));
+        title = document.createElement('div');
+        title.setAttribute('class', 'jzd-ui-subtitle');
+        title.innerHTML = this.text('Document operations');
+        this.uiEl.appendChild(title);
+
+        b = document.createElement('button');
         b.innerHTML = this.text('Insert cover pages');
         b.addEventListener('click', function(ev) {
             me.insertCoverPages();
@@ -593,34 +655,6 @@ class jzinDesigner {
         this.uiEl.appendChild(b);
 
         this.uiEl.appendChild(document.createElement('hr'));
-        b = document.createElement('button');
-        b.innerHTML = this.text('Delete this page');
-        b.addEventListener('click', function(ev) {
-            me.deletePage(me.pageCurrent);
-            me.updateRestoreMenu();
-            if (me.pageCurrent >= me.numDocPages()) me.pageCurrent = me.numDocPages() - 1;
-            me.repaginate();
-            me.docAltered();
-            me.refreshAndGo(me.pageCurrent);
-            ev.stopPropagation();
-        });
-        this.uiEl.appendChild(b);
-
-        let r = document.createElement('select');
-        r.addEventListener('change', function(ev) {
-            let rpnum = me.restorePage(parseInt(this.value));
-            me.updateRestoreMenu();
-            me.pageCurrent = rpnum;
-            me.repaginate();
-            me.docAltered();
-            me.refreshAndGo(me.pageCurrent);
-            ev.stopPropagation();
-        });
-        this._restoreMenu = r;
-        this.uiEl.appendChild(r);
-        this.updateRestoreMenu();
-
-        this.uiEl.appendChild(document.createElement('hr'));
         r = document.createElement('select');
         r.innerHTML = '<option value="0">' + this.text('Insert before this page') + '</option>' +
             '<option value="1">' + this.text('Insert after this page') + '</option>';
@@ -647,35 +681,6 @@ class jzinDesigner {
             me.repaginate();
             me.docAltered();
             me.refreshAndGo(me.pageCurrent + delta);
-            ev.stopPropagation();
-        });
-        this.uiEl.appendChild(b);
-
-        this.uiEl.appendChild(document.createElement('hr'));
-        b = document.createElement('button');
-        b.innerHTML = '&#8593;';
-        b.addEventListener('click', function(ev) {
-            if (me.pageCurrent < 1) return;
-            me.swapPages(me.pageCurrent, me.pageCurrent - 1);
-            me.repaginate();
-            me.docAltered();
-            me.pageCurrent = me.pageCurrent - 1;
-            me.refreshAndGo(me.pageCurrent);
-            ev.stopPropagation();
-        });
-        this.uiEl.appendChild(b);
-        let m = document.createElement('span');
-        m.innerHTML = this.text('Move this page');
-        this.uiEl.appendChild(m);
-        b = document.createElement('button');
-        b.innerHTML = '&#8595;';
-        b.addEventListener('click', function(ev) {
-            if (me.pageCurrent >= (me.numDocPages() - 1)) return;
-            me.swapPages(me.pageCurrent, me.pageCurrent + 1);
-            me.repaginate();
-            me.docAltered();
-            me.pageCurrent = me.pageCurrent + 1;
-            me.refreshAndGo(me.pageCurrent);
             ev.stopPropagation();
         });
         this.uiEl.appendChild(b);
