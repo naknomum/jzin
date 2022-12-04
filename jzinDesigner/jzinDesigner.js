@@ -60,28 +60,6 @@ class jzinDesigner {
         jzinDesigner.languages = Object.keys(jzinDesigner.languageMap).sort();
         this.preferences = jzinDesigner.localStorageGet('preferences') || {};
         this.setLanguageFromBrowser();
-        this.prefUI = document.createElement('div');
-        this.prefUI.classList.add('jzd-preferences-ui');
-        let pbutton = document.createElement('div');
-        pbutton.classList.add('jzd-preferences-button');
-        pbutton.innerHTML = '⚙️';
-        pbutton.addEventListener('click', function(ev) { me.togglePreferences(ev); });
-        this.prefUI.appendChild(pbutton);
-        let langMenu = document.createElement('select');
-        langMenu.addEventListener('change', function(ev) {
-            me.changeLanguage(this.value);
-            ev.stopPropagation();
-        });
-        for (let i = 0 ; i < jzinDesigner.languages.length ; i++) {
-            let opt = document.createElement('option');
-            let lkey = jzinDesigner.languages[i];
-            opt.setAttribute('value', lkey);
-            opt.innerHTML = jzinDesigner.languageMap[lkey].icon + ' ' + jzinDesigner.languageMap[lkey].title + ' [' + lkey + ']';
-            langMenu.appendChild(opt);
-        }
-        langMenu.value = this.language;
-        this.prefUI.appendChild(langMenu);
-        this.el.appendChild(this.prefUI);
 
         window.addEventListener('resize', function(ev) {
             clearTimeout(jzinDesigner.resizeTimer);
@@ -309,7 +287,46 @@ class jzinDesigner {
         if (!this.languageMap) return;
 
         // have everything we need
+        this.initPrefs();
         this.setUI();
+    }
+
+    initPrefs() {
+        let me = this;
+        this.prefUI = document.createElement('div');
+        this.prefUI.classList.add('jzd-preferences-ui');
+        let pbutton = document.createElement('div');
+        pbutton.classList.add('jzd-preferences-button');
+        pbutton.innerHTML = '⚙️';
+        pbutton.addEventListener('click', function(ev) { me.togglePreferences(ev); });
+        this.prefUI.appendChild(pbutton);
+        let langMenu = document.createElement('select');
+        langMenu.addEventListener('change', function(ev) {
+            me.changeLanguage(this.value);
+            ev.stopPropagation();
+        });
+        for (let i = 0 ; i < jzinDesigner.languages.length ; i++) {
+            let opt = document.createElement('option');
+            let lkey = jzinDesigner.languages[i];
+            opt.setAttribute('value', lkey);
+            opt.innerHTML = jzinDesigner.languageMap[lkey].icon + ' ' + jzinDesigner.languageMap[lkey].title + ' [' + lkey + ']';
+            langMenu.appendChild(opt);
+        }
+        langMenu.value = this.language;
+        this.prefUI.appendChild(langMenu);
+
+        pbutton = document.createElement('button');
+        pbutton.style.display = 'block';
+        pbutton.style.marginTop = '4em';
+        pbutton.innerHTML = '⚠️ ' + this.text('RESET ALL CHANGES') + ' ⚡💀';
+        pbutton.addEventListener('click', function(ev) {
+            me.resetAllTemplates();
+            me.clearLocalStorageDocument();
+            window.location.reload();
+        });
+        this.prefUI.appendChild(pbutton);
+
+        this.el.appendChild(this.prefUI);
     }
 
     setUI(el) {
