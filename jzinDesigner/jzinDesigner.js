@@ -712,7 +712,7 @@ class jzinDesigner {
             }
             me.repaginate();
             me.docAltered();
-            me.refreshAndGo(1);
+            me.refreshAndGo(0);
             ev.stopPropagation();
         });
         this.uiEl.appendChild(pcheck);
@@ -734,16 +734,18 @@ class jzinDesigner {
         pcheck.addEventListener('change', function(ev) {
             let pgs = me.pagesByType('toc', true).reverse();
             // this is reversed, so we can safely delete without messing up cuz of order
+            let goPnum = 0;
             if (pgs.length) {
+                goPnum = pgs[0];
                 for (let i = 0 ; i < pgs.length ; i++) {
                     me.deletePage(pgs[i]);
                 }
             } else {
-                me.insertTOCPages();
+                goPnum = me.insertTOCPages();
             }
             me.repaginate();
             me.docAltered();
-            me.refreshAndGo(1);
+            me.refreshAndGo(goPnum);
             ev.stopPropagation();
         });
         this.uiEl.appendChild(pcheck);
@@ -759,17 +761,19 @@ class jzinDesigner {
         if (pgs.length) pcheck.setAttribute('checked', 'checked');
         pcheck.addEventListener('change', function(ev) {
             let pgs = me.pagesByType('index').reverse();
+            let goPnum = 0;
             // this is reversed, so we can safely delete without messing up cuz of order
             if (pgs.length) {
                 for (let i = 0 ; i < pgs.length ; i++) {
                     me.deletePage(pgs[i]);
                 }
+                goPnum = me.numDocPages();
             } else {
-                me.insertIndexPages();
+                goPnum = me.insertIndexPages();
             }
             me.repaginate();
             me.docAltered();
-            me.refreshAndGo(1);
+            me.refreshAndGo(goPnum);
             ev.stopPropagation();
         });
         this.uiEl.appendChild(pcheck);
@@ -1003,6 +1007,7 @@ console.log('OUCH %o', pnum);
             elements: []
         });
         this.repaginate();
+        return this.pagesByType('index')[0];
     }
 
     offsetIndex() {
@@ -1040,6 +1045,7 @@ console.log('OUCH %o', pnum);
             elements: []
         });
         this.repaginate();
+        return this.pagesByType('toc')[0];
     }
 
     updateRestoreMenu() {
