@@ -40,6 +40,8 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
   * ~~Language~~
 * ~~Better text UI~~
   * Deprecate overflow/wrap for now (?)
+* Fix doc buttons to be toggles instead (e.g. index page)
+  * TOC should be disabled until chapter pages exist
 * ~~Image UI~~
   * Better image options (fitInto etc)
 * ~~Add/Remove elements on page~~
@@ -52,6 +54,8 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 
 * Add images (url, upload, paste) 
 * Add fonts (url, upload)
+* Index/toc field on text (and image?) options
+* Edit font/style of index/chapter/toc/etc sticks
 * SVG support
 * Mixed fonts/weight/etc
   * Markdown support
@@ -63,4 +67,5 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * Graphic support (lines, circles, etc.)
 * Rotation
 * Maybe improvements to have real undo? (all operations)
+* Handle multi-image posts (e.g. Instagram carousels)
 
