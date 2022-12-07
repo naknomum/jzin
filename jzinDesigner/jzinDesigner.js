@@ -297,7 +297,7 @@ class jzinDesigner {
         this.prefUI.classList.add('jzd-preferences-ui');
         let pbutton = document.createElement('div');
         pbutton.classList.add('jzd-preferences-button');
-        pbutton.innerHTML = '⚙️';
+        pbutton.innerHTML = jzinDesigner.languageMap[this.language].icon + ' ⚙️';
         pbutton.addEventListener('click', function(ev) { me.togglePreferences(ev); });
         this.prefUI.appendChild(pbutton);
         let langMenu = document.createElement('select');
@@ -661,6 +661,7 @@ class jzinDesigner {
         this.uiEl.appendChild(document.createElement('hr'));
         b = document.createElement('button');
         b.innerHTML = this.text('Delete this page');
+        //FIXME del chapter page should also delete back and delete TOC and update TOC checkbox
         b.addEventListener('click', function(ev) {
             me.deletePage(me.pageCurrent);
             me.updateRestoreMenu();
@@ -669,6 +670,7 @@ class jzinDesigner {
             me.docAltered();
             me.refreshAndGo(me.pageCurrent);
             ev.stopPropagation();
+            me.message(me.text('Page deleted. You may undo this with the restore menu.'), 'warning');
         });
         this.uiEl.appendChild(b);
 
@@ -692,39 +694,96 @@ class jzinDesigner {
         title.innerHTML = this.text('Document operations');
         this.uiEl.appendChild(title);
 
-        b = document.createElement('button');
-        b.innerHTML = this.text('Insert cover pages');
-        b.addEventListener('click', function(ev) {
-            me.insertCoverPages();
+
+        let pgs = this.pagesByType('cover-', true).reverse();
+        let pcheck = document.createElement('input');
+        pcheck.setAttribute('type', 'checkbox');
+        pcheck.setAttribute('id', 'toggle-cover-pages');
+        if (pgs.length) pcheck.setAttribute('checked', 'checked');
+        pcheck.addEventListener('change', function(ev) {
+            let pgs = me.pagesByType('cover-', true).reverse();
+            // this is reversed, so we can safely delete without messing up cuz of order
+            if (pgs.length) {
+                for (let i = 0 ; i < pgs.length ; i++) {
+                    me.deletePage(pgs[i]);
+                }
+            } else {
+                me.insertCoverPages();
+            }
             me.repaginate();
             me.docAltered();
             me.refreshAndGo(1);
             ev.stopPropagation();
         });
-        this.uiEl.appendChild(b);
-        b = document.createElement('button');
-        b.innerHTML = this.text('Insert index pages');
-        b.addEventListener('click', function(ev) {
-            me.insertIndexPages();
+        this.uiEl.appendChild(pcheck);
+        let label = document.createElement('label');
+        label.setAttribute('for', 'toggle-cover-pages');
+        label.innerHTML = this.text('Cover pages');
+        this.uiEl.appendChild(label);
+
+        pgs = this.pagesByType('toc', true).reverse();
+        pcheck = document.createElement('input');
+        pcheck.setAttribute('type', 'checkbox');
+        pcheck.setAttribute('id', 'toggle-toc-pages');
+        if (pgs.length) pcheck.setAttribute('checked', 'checked');
+        let chaps = this.pagesByType('chapter');
+        if (!chaps.length) {
+            pcheck.setAttribute('disabled', 'disabled');
+            pcheck.setAttribute('title', this.text('Needs chapter pages'));
+        }
+        pcheck.addEventListener('change', function(ev) {
+            let pgs = me.pagesByType('toc', true).reverse();
+            // this is reversed, so we can safely delete without messing up cuz of order
+            if (pgs.length) {
+                for (let i = 0 ; i < pgs.length ; i++) {
+                    me.deletePage(pgs[i]);
+                }
+            } else {
+                me.insertTOCPages();
+            }
             me.repaginate();
             me.docAltered();
-            me.refreshAndGo(me.offsetIndex() - 1);
+            me.refreshAndGo(1);
             ev.stopPropagation();
         });
-        this.uiEl.appendChild(b);
-        b = document.createElement('button');
-        b.innerHTML = this.text('Insert Table of Contents');
-        b.addEventListener('click', function(ev) {
-            me.insertTOCPages();
+        this.uiEl.appendChild(pcheck);
+        label = document.createElement('label');
+        label.setAttribute('for', 'toggle-toc-pages');
+        label.innerHTML = this.text('Table of contents');
+        this.uiEl.appendChild(label);
+
+        pgs = this.pagesByType('index').reverse();
+        pcheck = document.createElement('input');
+        pcheck.setAttribute('type', 'checkbox');
+        pcheck.setAttribute('id', 'toggle-index-pages');
+        if (pgs.length) pcheck.setAttribute('checked', 'checked');
+        pcheck.addEventListener('change', function(ev) {
+            let pgs = me.pagesByType('index').reverse();
+            // this is reversed, so we can safely delete without messing up cuz of order
+            if (pgs.length) {
+                for (let i = 0 ; i < pgs.length ; i++) {
+                    me.deletePage(pgs[i]);
+                }
+            } else {
+                me.insertIndexPages();
+            }
             me.repaginate();
             me.docAltered();
-            me.refreshAndGo(me.offsetTOC());
+            me.refreshAndGo(1);
             ev.stopPropagation();
         });
-        this.uiEl.appendChild(b);
-        b = document.createElement('button');
-        b.innerHTML = this.text('Toggle page numbers');
-        b.addEventListener('click', function(ev) {
+        this.uiEl.appendChild(pcheck);
+        label = document.createElement('label');
+        label.setAttribute('for', 'toggle-index-pages');
+        label.innerHTML = this.text('Index page(s)');
+        this.uiEl.appendChild(label);
+
+        pgs = this.pagesByType('index').reverse();
+        pcheck = document.createElement('input');
+        pcheck.setAttribute('type', 'checkbox');
+        pcheck.setAttribute('id', 'toggle-page-numbers');
+        if (me.showPageNumbers) pcheck.setAttribute('checked', 'checked');
+        pcheck.addEventListener('change', function(ev) {
             me.showPageNumbers = !me.showPageNumbers;
             if (!me.showPageNumbers) me.removePageNumbers();  // only need to do this when changed
             me.repaginate();
@@ -732,7 +791,11 @@ class jzinDesigner {
             me.refreshAndGo(me.offsetTOC());
             ev.stopPropagation();
         });
-        this.uiEl.appendChild(b);
+        this.uiEl.appendChild(pcheck);
+        label = document.createElement('label');
+        label.setAttribute('for', 'toggle-page-numbers');
+        label.innerHTML = this.text('Page numbers');
+        this.uiEl.appendChild(label);
 
         this.uiEl.appendChild(document.createElement('hr'));
         r = document.createElement('select');
@@ -762,6 +825,11 @@ class jzinDesigner {
             me.docAltered();
             me.refreshAndGo(me.pageCurrent + delta);
             ev.stopPropagation();
+            let el = document.getElementById('toggle-toc-pages');
+            if (el) {
+                el.removeAttribute('disabled');
+                el.removeAttribute('title');
+            }
         });
         this.uiEl.appendChild(b);
 
@@ -1003,10 +1071,9 @@ console.log('OUCH %o', pnum);
         if ((pageNum < 0) || (pageNum >= this.numDocPages())) return;
         if (!this.doc._trash) this.doc._trash = [];
         let del = this.doc.document.pages.splice(pageNum, 1)[0];
-        del._delName = this.text('page') + ' ' + pageNum;
+        del._delName = this.text('page') + ' ' + pageNum + (del.jzdPageType ? ' [' + del.jzdPageType + ']' : '');
         del._delPageNum = pageNum;
         this.doc._trash.push(del);
-        this.message(this.text('Page deleted. You may undo this with the restore menu.'), 'warning');
     }
 
     deleteElement(pageNum, elNum) {
@@ -1894,6 +1961,15 @@ console.log('pageNumbers = %o', pageNumbers);
         }
         if (removed) this.docAltered();
         return removed;
+    }
+
+    pagesByType(type, prefix) {
+        let matched = [];
+        for (let i = 0 ; i < this.doc.document.pages.length ; i++) {
+            if (!this.doc.document.pages[i].jzdPageType) continue;
+            if ((this.doc.document.pages[i].jzdPageType == type) || (prefix && this.doc.document.pages[i].jzdPageType.startsWith(type))) matched.push(i);
+        }
+        return matched;
     }
 
     //kinda debugging only?

@@ -40,7 +40,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
   * ~~Language~~
 * ~~Better text UI~~
   * Deprecate overflow/wrap for now (?)
-* Fix doc buttons to be toggles instead (e.g. index page)
+* ~~Fix doc buttons to be toggles instead (e.g. index page)~~
   * TOC should be disabled until chapter pages exist
 * ~~Image UI~~
   * Better image options (fitInto etc)
