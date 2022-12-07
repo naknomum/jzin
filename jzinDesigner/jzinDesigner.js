@@ -1,7 +1,7 @@
 
 class jzinDesigner {
 
-    static version = '0.0.4';
+    static version = '0.0.6';
     static fonts = null;
     static fontSelect = null;
 
@@ -210,6 +210,8 @@ class jzinDesigner {
 
     // TODO: resolve how to fetch remove vs local
     initDoc() {
+        this.gotDoc({});
+        return;
         let loc = jzinDesigner.localStorageGet('doc.' + this.projId);
         if (loc) {
             console.info('using local doc: %s', this.projId);
@@ -325,6 +327,11 @@ class jzinDesigner {
             window.location.reload();
         });
         this.prefUI.appendChild(pbutton);
+
+        let about = document.createElement('div');
+        about.classList.add('jzd-preferences-about');
+        about.innerHTML = 'version ' + jzinDesigner.version;
+        this.prefUI.appendChild(about);
 
         this.el.appendChild(this.prefUI);
     }
@@ -2091,7 +2098,7 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
                     let link = document.createElement('a');
                     document.body.appendChild(link);
                     link.download = (me.doc.meta.title || 'Untitled') + ' jzin-' + (me.doc.meta.guidHash || '000000') + '.pdf';
-                    link.href = '../assets/' + me.projId + '/final.pdf';
+                    link.href = '../assets/' + me.projId + '/' + data.filename;
                     link.click();
                     link.remove();
                 } else {

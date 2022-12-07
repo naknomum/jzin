@@ -48,6 +48,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
   * ~~Expand undo buffer~~
 * Book signatures (hopefully)
 * Bug squashing
+  * Remove delete from template-edit mode (image/text)
   * Move page should be disabled for special pages (index, TOC)
   * Disable around TOC should be better (re: chapter pages)
   * Delete pages should delete "companions" (e.g. back of chapter page)
