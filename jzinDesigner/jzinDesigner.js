@@ -533,6 +533,7 @@ class jzinDesigner {
         this.uiEl.style.overflow = 'hidden';
         let bwrapper = document.createElement('div');
         bwrapper.style.padding = '4px';
+        bwrapper.classList.add('jzd-template-pager', 'jzd-template-pager-one');
         let b = document.createElement('button');
         b.innerHTML = '&#8592;';
         b.addEventListener('click', function(ev) { me.pageChange(-1); });
@@ -1448,6 +1449,14 @@ console.log('pageNumbers = %o', pageNumbers);
 
         let previewDoc = this.docFromTemplate(jzinDesigner.templates[tnum], this.feed.feed);
         this.previewPages(previewDoc);
+        let els = this.uiEl.getElementsByClassName('jzd-template-pager');
+        if (els && els[0]) {
+            if (this.pageMax() > 0) {
+                els[0].classList.remove('jzd-template-pager-one');
+            } else {
+                els[0].classList.add('jzd-template-pager-one');
+            }
+        }
     }
 
     previewPages(doc) {

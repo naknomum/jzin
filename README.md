@@ -38,6 +38,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * ~~Gutters~~
 * ~~Preferences~~
   * ~~Language~~
+* ~~Template pager disabled on 1-page templates~~
 * ~~Better text UI~~
   * Deprecate overflow/wrap for now (?)
 * ~~Fix doc buttons to be toggles instead (e.g. index page)~~
