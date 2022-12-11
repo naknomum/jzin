@@ -210,14 +210,15 @@ class jzinDesigner {
 
     // TODO: resolve how to fetch remove vs local
     initDoc() {
-        this.gotDoc({});
-        return;
+        //this.gotDoc({});
+        //return;
         let loc = jzinDesigner.localStorageGet('doc.' + this.projId);
         if (loc) {
             console.info('using local doc: %s', this.projId);
             this.gotDoc(loc);
             return;
         }
+        this.doc = {}; return;
         fetch(this.dataDirUrl + '/doc.json')
             .then((resp) => resp.json())
             .then((data) => this.gotDoc(data))
