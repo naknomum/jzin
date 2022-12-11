@@ -38,6 +38,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * ~~Gutters~~
 * ~~Preferences~~
   * ~~Language~~
+* ~~Template pager disabled on 1-page templates~~
 * ~~Better text UI~~
   * Deprecate overflow/wrap for now (?)
 * ~~Fix doc buttons to be toggles instead (e.g. index page)~~
@@ -48,7 +49,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
   * ~~Expand undo buffer~~
 * Book signatures (hopefully)
 * Bug squashing
-  * Remove delete from template-edit mode (image/text)
+  * ~~Remove delete from template-edit mode (image/text)~~
   * Move page should be disabled for special pages (index, TOC)
   * Disable around TOC should be better (re: chapter pages)
   * Delete pages should delete "companions" (e.g. back of chapter page)
@@ -61,6 +62,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * Add fonts (url, upload)
 * Index/toc field on text (and image?) options
 * Edit font/style of index/chapter/toc/etc sticks
+* Allow delete/add of elements in template mode
 * SVG support
 * Mixed fonts/weight/etc
   * Markdown support
