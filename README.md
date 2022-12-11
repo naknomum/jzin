@@ -53,7 +53,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
   * Move page should be disabled for special pages (index, TOC)
   * Disable around TOC should be better (re: chapter pages)
   * Delete pages should delete "companions" (e.g. back of chapter page)
-  * Disable/cursor/wait while printing
+  * ~~Disable/cursor/wait while printing~~
 * ~~Web presence (minimal)~~
 
 ### To-Do: future wishlist

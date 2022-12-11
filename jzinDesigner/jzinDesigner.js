@@ -853,13 +853,17 @@ class jzinDesigner {
         this.uiEl.appendChild(b);
 
         this.uiEl.appendChild(document.createElement('hr'));
+        let pwrapper = document.createElement('div');
+        pwrapper.classList.add('jzd-print-wrapper');
         b = document.createElement('button');
         b.innerHTML = this.text('Print');
         b.addEventListener('click', function(ev) {
+            this.parentElement.classList.add('jzd-print-wrapper-wait');
             me.print();
             ev.stopPropagation();
         });
-        this.uiEl.appendChild(b);
+        pwrapper.appendChild(b);
+        this.uiEl.appendChild(pwrapper);
     }
 
     createDocFromTemplate() {
@@ -2120,10 +2124,17 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
                 } else {
                     me.message(errorMsg, 'error');
                 }
+                me.reEnablePrint();
             }).catch((error) => {
                 console.error('printing error! %o', error);
                 me.message(errorMsg, 'error');
+                me.reEnablePrint();
             });
+    }
+
+    reEnablePrint() {
+        let els = this.uiEl.getElementsByClassName('jzd-print-wrapper-wait');
+        if (els && els[0]) els[0].classList.remove('jzd-print-wrapper-wait');
     }
 
     // this is awful, but gets us there for now
