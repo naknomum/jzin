@@ -336,9 +336,13 @@ class jzinDesigner {
         this.el.appendChild(this.prefUI);
     }
 
+    inTemplateMode() {
+        return (this.activeTemplate != undefined);
+    }
+
     setUI(el) {
         if (!el) {
-            if ((this.activeTemplate != undefined) || !(this.doc && this.doc.document && this.doc.document.pages)) {
+            if (this.inTemplateMode() || !(this.doc && this.doc.document && this.doc.document.pages)) {
                 if (this.activeTemplate == null) this.chooseTemplate(0);
                 this.initTemplateUI();
                 this.message(this.text('Choose a template. Edit the template and change how all pages will look.'));
@@ -386,6 +390,7 @@ class jzinDesigner {
         tmp.innerHTML = '<img src="ui-images/image-outside-crop.png"/> ' + this.text('Fit outside, cropped');
         this.uiEl.append(tmp);
 
+        if (this.inTemplateMode()) return;
         this.uiEl.appendChild(document.createElement('hr'));
         let del = document.createElement('button');
         del.innerHTML = this.text('Delete');
@@ -489,6 +494,7 @@ class jzinDesigner {
         label.innerHTML = this.text('Show overflow');
         this.uiEl.appendChild(label);
 
+        if (this.inTemplateMode()) return;
         this.uiEl.appendChild(document.createElement('hr'));
         let del = document.createElement('button');
         del.innerHTML = this.text('Delete');
@@ -1628,7 +1634,7 @@ console.log('pageNumbers = %o', pageNumbers);
 
     // points into the right thing to change, based on which mode (template edit vs doc edit)
     elementPointer(pgNum, elNum) {
-        if (this.activeTemplate != null) {
+        if (this.inTemplateMode()) {
             return jzinDesigner.templates[this.activeTemplate].document.pages[pgNum].elements[elNum];
         } else {
             return this.doc.document.pages[pgNum].elements[elNum];
@@ -1644,7 +1650,7 @@ console.log('pageNumbers = %o', pageNumbers);
     elementChanged(el) {
         let ident = el.id.split('.');
         console.info('element changed! %d,%d %o', ident[0], ident[1], el);
-        if (this.activeTemplate != null) {
+        if (this.inTemplateMode()) {
             this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], jzinDesigner.templateFeed);
             let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
             this.previewPages(previewDoc);
@@ -1717,7 +1723,7 @@ console.log('pageNumbers = %o', pageNumbers);
         if (el == null) return;
         let me = this;
         el.classList.add('jzd-element-active');
-        if (jzd.activeTemplate) return;
+        if (this.inTemplateMode()) return;
         let ident = el.id.split('.');
         //console.log('activate ???? pg %o', this.doc.document.pages[ident[0]].elements[ident[1]]);
         if ((this.doc.document.pages[ident[0]].elements[ident[1]].elementType == 'text') &&
