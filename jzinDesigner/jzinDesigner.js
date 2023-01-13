@@ -45,7 +45,11 @@ class jzinDesigner {
         this.el = el;
         this.pageBackdrop = null;
         this.pageCurrent = 0;
-        this.dataDirUrl = '../assets/' + projId;
+        if (projId.startsWith('ig-')) {
+            this.dataDirUrl = '../assets/ig/' + projId.substring(3);
+        } else {
+            this.dataDirUrl = '../assets/' + projId;
+        }
         this.feed = null;
         this.doc = null;
         this.activeTemplate = null;
