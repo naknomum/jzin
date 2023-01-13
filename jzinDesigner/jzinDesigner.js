@@ -2122,7 +2122,7 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
                     let link = document.createElement('a');
                     document.body.appendChild(link);
                     link.download = (me.doc.meta.title || 'Untitled') + ' jzin-' + (me.doc.meta.guidHash || '000000') + '.pdf';
-                    link.href = '../assets/' + me.projId + '/' + data.filename;
+                    link.href = data.filename;
                     link.click();
                     link.remove();
                 } else {
