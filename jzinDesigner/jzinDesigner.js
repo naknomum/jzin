@@ -103,7 +103,9 @@ class jzinDesigner {
 
         this.initTemplates();
         this.initFonts();
-        this.initFeed();
+        this._statusCount = 0;
+        this.initStatus();
+        //this.initFeed();
         this.initDoc();
     }
 
@@ -198,6 +200,32 @@ class jzinDesigner {
         fetch('fonts/data.json')
             .then((resp) => resp.json())
             .then((data) => this.gotFonts(data));
+    }
+
+    initStatus() {
+        fetch(this.dataDirUrl + '/status.json')
+            .then((resp) => resp.json())
+            .then((data) => this.gotStatus(data))
+            .catch((error) => {
+                if (this.language && this.languageMap) this.message(this.text('waiting for data'));
+                console.info('gotStatus[%d]: ERROR %o', this._statusCount, error);
+                this._statusCount++;
+                let me = this;
+                window.setTimeout(function() { me.initStatus(); }, 2170);
+            });
+    }
+
+    gotStatus(data) {
+        console.info('gotStatus[%d]: %o', this._statusCount, data);
+        if (data.complete) {
+            this.initFeed();
+            return;
+        }
+        let pct = Math.round(data.percent * 100) || '-';
+        if (this.language && this.languageMap) this.message(this.text('waiting for data') + ' [' + pct + '%]');
+        this._statusCount++;
+        let me = this;
+        window.setTimeout(function() { me.initStatus(); }, 2170);
     }
 
     initFeed() {
