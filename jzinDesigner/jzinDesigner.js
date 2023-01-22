@@ -1239,6 +1239,7 @@ console.log('OUCH %o', pnum);
                 let ref = this.doc.document.pages[i].elements[el].jzdRefIndex;
                 if (!ref) continue;
                 if (ref === true) ref = this.doc.document.pages[i].elements[el].text;
+                if (!ref) continue;
                 let refs = ref.split('|');
                 for (let j = 0 ; j < refs.length ; j++) {
                     if (index[refs[j]] && (index[refs[j]].indexOf(pgNum) > -1)) continue; //already indexed on this page
@@ -1794,6 +1795,10 @@ console.log('pageNumbers = %o', pageNumbers);
             console.warn('unknown elementType=%s in %o', elData.elementType, elData);
             return;
         }
+        if (!el) {
+            console.warn('no element was added/created for %o', elData);
+            return;
+        }
         el.style.zIndex = depth;
         el.title = elData.elementType + ' [depth ' + depth + ']';
         let r = 11;
@@ -1946,6 +1951,7 @@ console.log('pageNumbers = %o', pageNumbers);
     }
 
     addImageElement(containerEl, elData) {
+        if (!elData.image) return;
         let el = this.elementContainer(containerEl, elData);
         let img = document.createElement('img');
         img.setAttribute('class', 'jzd-image');
@@ -1958,6 +1964,7 @@ console.log('pageNumbers = %o', pageNumbers);
     }
 
     addTextElement(containerEl, elData) {
+        if (!elData.text) return;
         let el = this.elementContainer(containerEl, elData);
         let scale = containerEl.dataset.scale || 1;
         el.innerHTML = elData.text;
