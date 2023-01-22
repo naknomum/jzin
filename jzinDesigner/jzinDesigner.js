@@ -47,6 +47,8 @@ class jzinDesigner {
         this.pageCurrent = 0;
         if (projId.startsWith('ig-')) {
             this.dataDirUrl = '../assets/ig/' + projId.substring(3);
+        } else if (projId.startsWith('rss-')) {
+            this.dataDirUrl = '../assets/rss/' + projId.substring(4);
         } else {
             this.dataDirUrl = '../assets/' + projId;
         }
