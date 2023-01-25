@@ -33,7 +33,8 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 
 ### To-Do: pre-launch
 
-* Instagram import
+* ~~Instagram import~~
+* ~~RSS import~~
 * ~~Strip newlines from text~~
 * ~~Gutters~~
 * ~~Preferences~~
@@ -42,7 +43,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * ~~Better text UI~~
   * Deprecate overflow/wrap for now (?)
 * ~~Fix doc buttons to be toggles instead (e.g. index page)~~
-  * TOC should be disabled until chapter pages exist
+  * ~~TOC should be disabled until chapter pages exist~~
 * ~~Image UI~~
   * Better image options (fitInto etc)
 * ~~Add/Remove elements on page~~
@@ -51,7 +52,6 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
 * Bug squashing
   * ~~Remove delete from template-edit mode (image/text)~~
   * Move page should be disabled for special pages (index, TOC)
-  * Disable around TOC should be better (re: chapter pages)
   * Delete pages should delete "companions" (e.g. back of chapter page)
   * ~~Disable/cursor/wait while printing~~
 * ~~Web presence (minimal)~~
