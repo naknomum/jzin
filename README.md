@@ -48,6 +48,7 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
   * Better image options (fitInto etc)
 * ~~Add/Remove elements on page~~
   * ~~Expand undo buffer~~
+* UTF-8 not working on feeds (e.g. RSS)
 * Book signatures (hopefully)
 * Bug squashing
   * ~~Remove delete from template-edit mode (image/text)~~
