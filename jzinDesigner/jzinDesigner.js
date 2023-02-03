@@ -54,6 +54,7 @@ class jzinDesigner {
         }
         this.feed = null;
         this.doc = null;
+        this.imagesToCache = -1;
         this.activeTemplate = null;
         this.activeElement = null;
         this.init();
@@ -239,7 +240,35 @@ class jzinDesigner {
     gotFeed(data) {
         console.log('FEED DATA: %o', data);
         this.feed = data;
-        this.initUI();
+        this.cacheImages();
+    }
+
+    cacheImages() {
+        if (!this.imagesToCache) return this.initUI();
+
+        if (this.imagesToCache < 0) {
+            let me = this;
+            let srcs = [];
+            for (let i = 0 ; i < this.feed.feed.length ; i++) {
+                if (this.feed.feed[i].image) srcs.push(this.feed.feed[i].image);
+            }
+            this.imagesToCache = srcs.length;
+            for (let i = 0 ; i < srcs.length ; i++) {
+                let img = document.createElement('img');
+                img.style.visibility = 'hidden';
+                document.body.appendChild(img);
+                let src = srcs[i];
+                if (src.indexOf('/') < 0) src = this.dataDirUrl + '/' + src;
+                img.addEventListener('load', function(ev) {
+                    console.info('image cache: %s %o (%o,%o)', this.src, this.complete, this.naturalWidth, this.naturalHeight);
+                    me.feed.feed[i].imageWidth = this.naturalWidth;
+                    me.feed.feed[i].imageHeight = this.naturalHeight;
+                    me.imagesToCache--;
+                    me.cacheImages();  // will allow us to exit when done
+                });
+                img.src = src;
+            }
+        }
     }
 
     // TODO: resolve how to fetch remove vs local
@@ -1569,6 +1598,7 @@ console.log('pageNumbers = %o', pageNumbers);
                     }
                     if (i == 0) newPage.jzdHashTags = newPage.jzdHashTags.concat(feed[offset].hashtags || []);
                     newPage.elements[i][elType] = feed[offset][field] || null;
+                    if (elType == 'image') this.fitImage(newPage.elements[i], feed[offset]);
                     console.log('       PAGE[%d] els: %o ???', doc.document.pages.length, newPage.elements);
                 }
                 doc.document.pages.push(newPage);
@@ -1952,6 +1982,7 @@ console.log('pageNumbers = %o', pageNumbers);
 
     addImageElement(containerEl, elData) {
         if (!elData.image) return;
+        let me = this;
         let el = this.elementContainer(containerEl, elData);
         let img = document.createElement('img');
         img.setAttribute('class', 'jzd-image');
@@ -1961,6 +1992,50 @@ console.log('pageNumbers = %o', pageNumbers);
         el.appendChild(img);
         containerEl.appendChild(el);
         return el;
+    }
+
+    // homage to fitInto; adjusts postion and width/height to properly layout image
+    fitImage(elData, feedData) {
+        if (!feedData.imageHeight || !feedData.imageWidth) return;
+console.log('zzz fitImage el %o', JSON.stringify(elData));
+console.log('zzz fitImage feed %o', feedData);
+        let xOffset = 0;
+        let yOffset = 0;
+        let ws = elData.width / feedData.imageWidth;
+        let hs = elData.height / feedData.imageHeight;
+        let scale = Math.min(ws, hs);
+        if (!elData.fitType || (elData.fitType == 'inside')) {
+            xOffset = (elData.width - feedData.imageWidth * scale) / 2;
+            yOffset = (elData.height - feedData.imageHeight * scale) / 2;
+        }
+console.log('zzzz img(%d,%d) el(%d,%d)', feedData.imageWidth, feedData.imageHeight, elData.width, elData.height);
+console.log('zzzz img %o %o %o %o', scale, xOffset, yOffset, elData);
+        elData.width = feedData.imageWidth * scale;
+        elData.height = feedData.imageHeight * scale;
+        elData.position[0] += xOffset;
+        elData.position[1] += yOffset;
+console.log('zzzz elData is now %s', JSON.stringify(elData));
+    }
+
+    xfitImage(imgEl, elData, imgW, imgH) {
+        //let imgW = this.imageData[elData.image].width;
+        //let imgH = this.imageData[elData.image].height;
+        if (!imgW || !imgH) return;
+        let xOffset = 0;
+        let yOffset = 0;
+        let ws = elData.width / imgW;
+        let hs = elData.height / imgH;
+        let scale = Math.min(ws, hs);
+        if (!elData.fitType || (elData.fitType == 'inside')) {
+            xOffset = (elData.width - imgW * scale) / 2;
+            yOffset = (elData.height - imgH * scale) / 2;
+        }
+console.log('zzzz img(%d,%d) el(%d,%d)', imgW, imgH, elData.width, elData.height);
+console.log('zzzz img %o %o %o %o', scale, xOffset, yOffset, elData);
+        imgEl.style.left = Math.round(xOffset);
+        imgEl.style.top = Math.round(yOffset);
+        imgEl.style.visibility = 'visible';
+        if (this.inTemplateMode()) return;  // dont set elData
     }
 
     addTextElement(containerEl, elData) {
@@ -1990,6 +2065,7 @@ console.log('pageNumbers = %o', pageNumbers);
         if (elData.font) el.style.fontFamily = elData.font;
     }
 
+    // when *window* is resized
     resizeEl(el) {
         console.info('resizing: %o', el);
         this.setScale(el);
