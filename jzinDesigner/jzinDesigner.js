@@ -1,7 +1,7 @@
 
 class jzinDesigner {
 
-    static version = '0.0.6';
+    static version = '0.0.7';
     static fonts = null;
     static fontSelect = null;
 
@@ -2015,27 +2015,6 @@ console.log('zzzz img %o %o %o %o', scale, xOffset, yOffset, elData);
         elData.position[0] += xOffset;
         elData.position[1] += yOffset;
 console.log('zzzz elData is now %s', JSON.stringify(elData));
-    }
-
-    xfitImage(imgEl, elData, imgW, imgH) {
-        //let imgW = this.imageData[elData.image].width;
-        //let imgH = this.imageData[elData.image].height;
-        if (!imgW || !imgH) return;
-        let xOffset = 0;
-        let yOffset = 0;
-        let ws = elData.width / imgW;
-        let hs = elData.height / imgH;
-        let scale = Math.min(ws, hs);
-        if (!elData.fitType || (elData.fitType == 'inside')) {
-            xOffset = (elData.width - imgW * scale) / 2;
-            yOffset = (elData.height - imgH * scale) / 2;
-        }
-console.log('zzzz img(%d,%d) el(%d,%d)', imgW, imgH, elData.width, elData.height);
-console.log('zzzz img %o %o %o %o', scale, xOffset, yOffset, elData);
-        imgEl.style.left = Math.round(xOffset);
-        imgEl.style.top = Math.round(yOffset);
-        imgEl.style.visibility = 'visible';
-        if (this.inTemplateMode()) return;  // dont set elData
     }
 
     addTextElement(containerEl, elData) {
