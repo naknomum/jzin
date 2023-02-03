@@ -256,14 +256,20 @@ class jzinDesigner {
             for (let i = 0 ; i < srcs.length ; i++) {
                 let img = document.createElement('img');
                 img.style.visibility = 'hidden';
+                img.style.position = 'absolute';
+                img.style.left = 0;
+                img.style.top = 0;
+                img.style.width = 10;
+                img.style.height = 10;
                 document.body.appendChild(img);
                 let src = srcs[i];
                 if (src.indexOf('/') < 0) src = this.dataDirUrl + '/' + src;
                 img.addEventListener('load', function(ev) {
-                    console.info('image cache: %s %o (%o,%o)', this.src, this.complete, this.naturalWidth, this.naturalHeight);
+                    console.info('image cache[%d]: %s %o (%o,%o)', me.imagesToCache, this.src, this.complete, this.naturalWidth, this.naturalHeight);
                     me.feed.feed[i].imageWidth = this.naturalWidth;
                     me.feed.feed[i].imageHeight = this.naturalHeight;
                     me.imagesToCache--;
+                    me.message(me.text('waiting for images') + ' [' + me.imagesToCache + ']');
                     me.cacheImages();  // will allow us to exit when done
                 });
                 img.src = src;
