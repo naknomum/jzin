@@ -69,7 +69,8 @@ Information and demonstrations can be found at [jzin.org](https://jzin.org).
   * Markdown support
   * Emoji
 * Twitter import
-* Halftoning of images
+* Halftoning of images (in frontend/js? backend?)
+* Clipping images
 * TOC into PDF
 * Web presence - expanded
 * Graphic support (lines, circles, etc.)
