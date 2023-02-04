@@ -27,7 +27,8 @@
 					{
 						"elementType": "text",
 						"options": { "align": "center" },
-						"overflow": false,
+						"textType": "paragraph",
+						"overflow": true,
 						"position": [12, 570],
 						"font": "OpenSans regular",
 						"fontSize": 30,
