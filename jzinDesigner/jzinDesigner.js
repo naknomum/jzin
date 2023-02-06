@@ -2122,7 +2122,9 @@ console.log('zzzz elData is now %s', JSON.stringify(elData));
         signatureSheets = signatureSheets || this.doc.document.layout.signatureSheets || 0;
         gutter = gutter || this.doc.document.layout.gutter || 0;  //FIXME
 
-        let pageOrder = jzinDesigner.getPageOrder(numAcross, numDown, signatureSheets, this.numDocPages());
+        let ordData = bookPageOrder(this.numDocPages(), numAcross, numDown, signatureSheets);
+console.log('>>>>>> ordData=%o', ordData);
+        let pageOrder = ordData.order;
 console.log('>>>>>> pageOrder=%o', pageOrder);
 
         this.pdfDoc = jzinDesigner.cloneObject(this.doc);
@@ -2162,48 +2164,6 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
                 }
             }
             this.pdfDoc.document.pages.push(page);
-        }
-        return pageOrder;
-    }
-
-    xgetPageOrder(numAcross, numDown, signatureSheets, numPages) {
-        let pageOrder = [];
-        let perSheet = numAcross * numDown * 2;
-        let numSheets = Math.ceil(numPages / perSheet);
-        if (!signatureSheets) signatureSheets = numSheets;
-
-        let perRowStack = numSheets * numAcross * 2;
-console.log('layout numPages=%d perSheet=%d numSheets=%d perRowStack=%d', numPages, perSheet, numSheets, perRowStack);
-        let sheetsProcessed = 0;
-        while (sheetsProcessed < numSheets) {
-            let offset = sheetsProcessed * perSheet;
-            for (let sig = 0 ; sig < signatureSheets ; sig++) {
-                let sheetInit = offset;
-console.log('layout sheetInit = %d', sheetInit);
-                for (let side = 0 ; side < 2 ; side++) {
-                    for (let y = 0 ; y < numDown ; y++) {
-                        for (let x = 0 ; x < numAcross ; x++) {
-                            if (x % 2 == 1) {
-                                if (side == 0) {
-                                    pageOrder.push(sheetInit + x - 1 + y * perRowStack);
-                                } else {
-                                    pageOrder.push(sheetInit + (signatureSheets - sig) * numAcross * numDown * 2 + x - 1 - numAcross - y * perRowStack);
-                                }
-                            } else {
-                                if (side == 0) {
-                                    pageOrder.push(sheetInit + (signatureSheets - sig) * numAcross * numDown * 2 - x + 1 - numAcross - y * perRowStack);
-                                } else {
-                                    pageOrder.push(sheetInit + (numAcross - 1) - x + y * perRowStack);
-                                }
-                            }
-console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
-                        }
-                    }
-                }
-                sheetsProcessed++;
-                offset += numAcross;
-//pageOrder.push('_');
-            }
         }
         return pageOrder;
     }
@@ -2250,97 +2210,6 @@ console.log('>> layout (%d,%d) pushed %s', x, y, pageOrder[pageOrder.length-1]);
 */
         let wh = [text.length * fontSize * 0.52, fontSize * 1.2];
         return wh;
-    }
-
-    // numAcross should be multiple of 2 or things are not good
-    static getPageOrder(numAcross, numDown, signatureSheets, numPages) {
-        let order = [];
-        numAcross = numAcross || 2;
-        numDown = numDown || 1;
-        signatureSheets = signatureSheets || 0;
-        let perSheet = numAcross * numDown * 2;
-        let numSheets = Math.ceil(numPages / perSheet);
-
-        // if we have signtures, we need numPages divisible by this
-        console.info('BEFORE: numPages=%d perSheet=%d numSheets=%d signatureSheets=%d', numPages, perSheet, numSheets, signatureSheets);
-        if (signatureSheets) {
-            numSheets = Math.ceil(numSheets / signatureSheets) * signatureSheets;
-            numPages = perSheet * numSheets;
-        } else {
-            signatureSheets = numSheets;
-            numPages = numSheets * perSheet;
-        }
-        console.info('AFTER:  numPages=%d perSheet=%d numSheets=%d signatureSheets=%d', numPages, perSheet, numSheets, signatureSheets);
-console.log('??????? %d', numPages/(numAcross*numDown));
-
-        //let delta = numAcross * numDown;
-        //let delta = signatureSheets * 2;
-        let delta = numSheets * 2;
-        let max = numPages - 1;
-        //let max = signatureSheets * 4 - 1;
-console.log('MAX %d, delta %d', max, delta);
-        for (let bundle = 0 ; bundle < (numSheets / signatureSheets) ; bundle++) {
-            let ranges = [];
-            for (let y = 0 ; y < numDown ; y++) {
-                let row = [];
-                for (let x = 0 ; x < (numAcross / 2) ; x++) {
-                    //bundle * 
-                    let start = x * delta + y * delta * numAcross / 2;
-                    let end = max - start;
-                    row.unshift(end);
-                    row.unshift(start);
-console.log('(%d,%d) start=%d end=%d row=%o', x, y, start, end, row);
-                }
-                ranges = ranges.concat(row);
-            }
-            console.warn('bundle %d: %o', bundle, ranges);
-            let bclus = jzinDesigner.bookletteCluster(ranges, signatureSheets, numAcross);
-console.log('bclus => %o', bclus);
-            order = order.concat(bclus);
-        }
-        return order;
-    }
-
-    static booklette(start, end, sheets) {
-        let ord = [];
-        for (let sh = 0 ; sh < sheets ; sh++) {
-            for (let side = 0 ; side < 2 ; side++) {
-                if (side) {
-                    ord.push(start + sh * 2 + 1);
-                    ord.push(end - sh * 2 - 1);
-                } else {
-                    ord.push(end - sh * 2);
-                    ord.push(start + sh * 2);
-                }
-            }
-        }
-        return ord;
-    }
-
-    // ranges = [start0, end0, ... startN, endN]
-    static bookletteCluster(ranges, sheets, numAcross) {
-        let numDown = ranges.length / numAcross;
-        let ords = [];
-        for (let r = 0 ; r < ranges.length ; r += 2) {
-            ords.push(jzinDesigner.booklette(ranges[r], ranges[r+1], sheets));
-console.log('>>>>> %o', ords[ords.length-1]);
-        }
-        let clustOrd = [];
-console.log('<<<<< %o', ords);
-        for (let i = 0 ; i < ords[0].length ; i += 2) {
-            //if (i / 2 % 2 == 0) {
-            //for (let o = 0 ; o < ords.length ; o++) {
-            for (let y = 0 ; y < numDown ; y++) {
-                for (let x = 0 ; x < (numAcross / 2) ; x++) {
-                    let o = y * numAcross / 2 + x;
-                    if (i / 2 % 2 == 1) o = y * numAcross / 2 + (numAcross / 2 - x) - 1;
-console.log('--- i=%d side=%d o=%d (%d,%d) %o', i, o, numAcross/2-x-1, x,y, ords[o]);
-                    clustOrd.push(ords[o][i]);
-                    clustOrd.push(ords[o][i+1]);
-                }
-            }
-        }
-        return clustOrd;
     }
 
 

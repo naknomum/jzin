@@ -28,6 +28,7 @@ The [generators](generators/) directory contains tools to create jzin from vario
 
 Information and demonstrations can be found at [jzin.org](https://jzin.org).
 
+jzin makes use of (and, in fact, spawned) [BookPageOrder](https://github.com/naknomum/BookPageOrder) for page-layout and ordering.
 
 ---------------------
 
