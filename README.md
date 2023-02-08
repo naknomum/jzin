@@ -50,7 +50,7 @@ jzin makes use of (and, in fact, spawned) [BookPageOrder](https://github.com/nak
 * ~~Add/Remove elements on page~~
   * ~~Expand undo buffer~~
 * UTF-8 not working on feeds (e.g. RSS)
-* Book signatures (hopefully)
+* ~~Book signatures~~
 * Bug squashing
   * ~~Remove delete from template-edit mode (image/text)~~
   * Move page should be disabled for special pages (index, TOC)
