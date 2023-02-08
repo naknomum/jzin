@@ -1445,7 +1445,7 @@ console.log('pageNumbers = %o', pageNumbers);
         if (!this.showPageNumbers) return;
         let size = this.newPageSize();
         let font = this.defaultFont();
-        let fontSize = this.generalScaleFontSize(11);
+        let fontSize = this.generalScaleFontSize(15);
         let indent = 5;
 
         let elTemplate = {
@@ -2124,13 +2124,14 @@ console.log('zzzz elData is now %s', JSON.stringify(elData));
     }
 
     //paperSize should be [w,h] in pts
-    createPdfDoc(paperSize, numAcross, numDown, signatureSheets, gutter) {
+    createPdfDoc(paperSize, numAcross, numDown, signatureSheets, gutter, safeMargin) {
         if (!this.doc.document.layout) this.doc.document.layout = {};
         paperSize = paperSize || this.doc.document.layout.paperSize || [612, 792];
         numAcross = numAcross || this.doc.document.layout.across || 2;
         numDown = numDown || this.doc.document.layout.down || 1;
         signatureSheets = signatureSheets || this.doc.document.layout.signatureSheets || 0;
         gutter = gutter || this.doc.document.layout.gutter || 0;  //FIXME
+        safeMargin = safeMargin || this.doc.document.layout.safeMargin || 0;
         console.info(' printing on paper=%o, layout=%dx%d, signature=%d, gutter=%o', paperSize, numAcross, numDown, signatureSheets, gutter);
 
         let ordData = bookPageOrder(this.numDocPages(), numAcross, numDown, signatureSheets);
@@ -2140,7 +2141,7 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
 
         this.pdfDoc = jzinDesigner.cloneObject(this.doc);
         this.pdfDoc.meta.author = 'Unknown JZIN User';  //FIXME
-        this.pdfDoc.meta.subject = this.url() + ' [' + this.projId + ']';
+        this.pdfDoc.meta.subject = this.url() + ' [' + this.projId + '] layout: ' + numAcross + 'x' + numDown + ' sigSize: ' + signatureSheets;
         this.pdfDoc.meta.creator = 'jzin.org jzinDesigner ' + jzinDesigner.version;
         this.pdfDoc.document.layout = {paperSize: paperSize};
         this.pdfDoc.document.pages = [];
@@ -2157,18 +2158,34 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
                         console.info('skipping x=%d, y=%d, pnum=%d due to no source page', x, y, pnum);
                         continue;
                     }
+
                     let pw = this.doc.document.pages[pnum].size[2] - this.doc.document.pages[pnum].size[0] + gutter;
                     let ph = this.doc.document.pages[pnum].size[3] - this.doc.document.pages[pnum].size[1];
                     if (pw > partW) console.warn('placed page pw=%d > partW=%d', pw, partW);
                     if (ph > partH) console.warn('placed page ph=%d > partH=%d', ph, partH);
+
+                    let safeScale = 1;
+                    if (safeMargin) {
+                        let sw = (pw - 2 * safeMargin) / pw;
+                        let sh = (ph - 2 * safeMargin) / ph;
+                        safeScale = Math.min(sw, sh);
+                        console.info('> %dx%d => %f, %f', pw, ph, sw, sh);
+                        console.warn('[p%d] safeMargin %f, safeScale %f', poffset, safeMargin, safeScale);
+                    }
+
                     let dx = (partW - pw) / 2;
                     let dy = (partH - ph) / 2;
-                    let offsetX = partW * x + dx + gutter * (x % 2);
-                    let offsetY = partH * (numDown - y - 1) + dy;
+                    let offsetX = partW * x + dx + gutter * (x % 2) + safeMargin;
+                    let offsetY = partH * (numDown - y - 1) + dy + safeMargin;
                     for (let elNum = 0 ; elNum < this.doc.document.pages[pnum].elements.length ; elNum++) {
                         let element = jzinDesigner.cloneObject(this.doc.document.pages[pnum].elements[elNum]);
-                        element.position[0] += offsetX;
-                        element.position[1] += offsetY;
+                        element.position[0] = offsetX + element.position[0] * safeScale;
+                        element.position[1] = offsetY + element.position[1] * safeScale;
+                        if (safeScale < 1) {  //we adjust any fontSize, width, etc.
+                            element.width *= safeScale;
+                            element.height *= safeScale;
+                            element.fontSize *= safeScale;
+                        }
                         page.elements.push(element);
                     }
                     poffset++;
@@ -2181,6 +2198,7 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
 
     print() {
         this.doc.document.layout.signatureSheets = parseInt(document.getElementById('jzd-print-signature-size').value);
+        this.doc.document.layout.safeMargin = 14;  //who has a full-bleed printer???
         this.createPdfDoc();
         let me = this;
         let errorMsg = this.text('Sorry, there was an error printing.');
