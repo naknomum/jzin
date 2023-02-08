@@ -1,11 +1,11 @@
 
 class jzinDesigner {
 
-    static version = '0.0.7';
+    static version = '0.0.9';
     static fonts = null;
     static fontSelect = null;
 
-    static numTemplates = 6;
+    static numTemplates = 7;
     static templates = [];
 
     static resizeTimer = null;

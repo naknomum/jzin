@@ -1,0 +1,65 @@
+{
+	"meta": {
+		"title": {
+			"en-us": "Eight-size (US Letter)",
+			"fr": "Huitième de page (US Lettre)"
+		}
+	},
+
+	"document": {
+
+		"layout": {
+			"across": 4,
+			"down": 2,
+			"gutter": 20,
+			"generalScale": 0.6,
+			"paperSize": [
+				792,
+				612
+			]
+		},
+
+		"pages": [
+
+			{
+				"size": [0, 0, 178, 306],
+				"elements": [
+					{
+						"elementType": "image",
+						"field": "image",
+						"position": [10, 136],
+						"width": 158,
+						"height": 158
+					},
+
+					{
+						"elementType": "text",
+						"options": { "align": "center" },
+						"textType": "paragraph",
+						"overflow": true,
+						"position": [10, 108],
+						"font": "OpenSans bold",
+						"fontSize": 17,
+						"height": 25,
+						"width": 158,
+						"field": "title"
+					},
+
+					{
+						"elementType": "text",
+						"textType": "paragraph",
+						"overflow": true,
+						"position": [10, 18],
+						"font": "OpenSans regular",
+						"fontSize": 9,
+						"height": 88,
+						"width": 158,
+						"field": "caption"
+					}
+
+				]
+			}
+		]
+	}
+}
+
