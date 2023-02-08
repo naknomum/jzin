@@ -58,5 +58,7 @@
    "Image Properties" : "Image Properties",
    "Sorry, there was an error printing." : "Sorry, there was an error printing.",
    "Fit outside, cropped" : "Fit outside, cropped",
+   "No signatures" : "No signatures", 
+   "sheets/signature" : "sheets/signature",
    "Print" : "Print"
 }

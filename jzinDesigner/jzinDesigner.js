@@ -932,6 +932,16 @@ class jzinDesigner {
             ev.stopPropagation();
         });
         pwrapper.appendChild(b);
+        b = document.createElement('select');
+        b.style.display = 'inline-block';
+        for (let i = 0 ; i < (this.numDocPages() / 4 - 2) ; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerHTML = (i ? i + ' ' + this.text('sheets/signature') : this.text('No signatures'));
+            b.appendChild(opt);
+        }
+        b.id = 'jzd-print-signature-size';
+        pwrapper.appendChild(b);
         this.uiEl.appendChild(pwrapper);
     }
 
@@ -2121,6 +2131,7 @@ console.log('zzzz elData is now %s', JSON.stringify(elData));
         numDown = numDown || this.doc.document.layout.down || 1;
         signatureSheets = signatureSheets || this.doc.document.layout.signatureSheets || 0;
         gutter = gutter || this.doc.document.layout.gutter || 0;  //FIXME
+        console.info(' printing on paper=%o, layout=%dx%d, signature=%d, gutter=%o', paperSize, numAcross, numDown, signatureSheets, gutter);
 
         let ordData = bookPageOrder(this.numDocPages(), numAcross, numDown, signatureSheets);
 console.log('>>>>>> ordData=%o', ordData);
@@ -2169,6 +2180,7 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
     }
 
     print() {
+        this.doc.document.layout.signatureSheets = parseInt(document.getElementById('jzd-print-signature-size').value);
         this.createPdfDoc();
         let me = this;
         let errorMsg = this.text('Sorry, there was an error printing.');
