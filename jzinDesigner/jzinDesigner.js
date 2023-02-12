@@ -413,7 +413,9 @@ class jzinDesigner {
     setUI(el) {
         if (!el) {
             if (this.inTemplateMode() || !(this.doc && this.doc.document && this.doc.document.pages)) {
-                if (this.activeTemplate == null) this.chooseTemplate(0);
+                let templateToUse = 0;
+                if (this.preferences.activeTemplate != undefined) templateToUse = this.preferences.activeTemplate;
+                if (this.activeTemplate == null) this.chooseTemplate(templateToUse);
                 this.initTemplateUI();
                 this.message(this.text('Choose a template. Edit the template and change how all pages will look.'));
             } else {
@@ -1532,6 +1534,7 @@ console.log('pageNumbers = %o', pageNumbers);
     chooseTemplate(tnum) {
         console.log('>>>> switch to template %o', tnum);
         this.activeTemplate = tnum;
+        this.updatePreference('activeTemplate', tnum);
         this.doc = this.docFromTemplate(jzinDesigner.templates[tnum], jzinDesigner.templateFeed);
         this.resetPageBackdrop();
         this.pageCurrent = 0;
