@@ -47,12 +47,25 @@ sub process_maps {
 
     # images
     foreach my $iname (keys %{$maps->{images}}) {
+        next if ($iname eq 'final.pdf');
         warn "IMAGE:($iname)\n";
         die "file not found: $maps->{images}->{$iname}->{src}" unless (-f $maps->{images}->{$iname}->{src});
         $MAP_IMAGES{$iname} = {
             data => $maps->{images}->{$iname},
-            image => $pdf->image($maps->{images}->{$iname}->{src}),
-        }
+            image => undef,
+        };
+        eval {
+            if ($maps->{images}->{$iname}->{src} =~ /\.pdf$/) {
+                my $source_pdf = PDF::API2->open($maps->{images}->{$iname}->{src});
+                my $source_page = $source_pdf->open_page(1);
+                my @size = $source_page->size();
+                $MAP_IMAGES{$iname}->{size} = \@size;
+                $MAP_IMAGES{$iname}->{image} = $source_pdf->embed_page($source_pdf, 1);
+            } else {
+                $MAP_IMAGES{$iname}->{image} = $pdf->image($maps->{images}->{$iname}->{src});
+            }
+        };
+        warn "got image-read error $@" if $@;
     }
 }
 
@@ -119,13 +132,31 @@ sub process_element_text {
 sub process_element_image {
     my ($page, $el) = @_;
     warn "IMAGE ELEMENT: " . Dumper($el) if $DEBUG;
-    die "could not find MAP_IMAGES{$el->{image}}" unless $MAP_IMAGES{$el->{image}};
+    my $image_key = $el->{image};
+    $image_key = $image_key->{'print'} || $image_key->{'web'} if (ref $el->{image} eq 'HASH');
+    warn ">>>>>>>>>>>>>>>>>>>>>> using image_key=$image_key" if $DEBUG;
+    die "could not find MAP_IMAGES{$image_key}" unless $MAP_IMAGES{$image_key} && $MAP_IMAGES{$image_key}->{image};
+
+    my $width = $el->{width};
+    my $height = $el->{height};
+
+    # for pdf width/height are actually scales, and we need to figure those out
+    if ($image_key =~ /\.pdf$/i) {
+        my $pdf_width = $MAP_IMAGES{$image_key}->{size}->[2] - $MAP_IMAGES{$image_key}->{size}->[0];
+        my $pdf_height = $MAP_IMAGES{$image_key}->{size}->[3] - $MAP_IMAGES{$image_key}->{size}->[1];
+#warn "($width, $height)";
+        $width = $width / $pdf_width;
+        $height = $height / $pdf_height;
+        # TODO do we want to force same aspect ratio here?
+#warn "(pdf=($pdf_width, $pdf_height) => ($width, $height)";
+    }
+
     $page->object(
-        $MAP_IMAGES{$el->{image}}->{image},
+        $MAP_IMAGES{$image_key}->{image},
         $el->{position}->[0],
         $el->{position}->[1],
-        $el->{width},
-        $el->{height},
+        $width,
+        $height,
     );
 }
 

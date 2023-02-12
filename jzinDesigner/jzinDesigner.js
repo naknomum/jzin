@@ -250,7 +250,7 @@ class jzinDesigner {
             let me = this;
             let srcs = [];
             for (let i = 0 ; i < this.feed.feed.length ; i++) {
-                if (this.feed.feed[i].image) srcs.push(this.feed.feed[i].image);
+                if (this.feed.feed[i].image) srcs.push(this.imageSrc(this.feed.feed[i].image));
             }
             this.imagesToCache = srcs.length;
             for (let i = 0 ; i < srcs.length ; i++) {
@@ -2002,12 +2002,21 @@ console.log('pageNumbers = %o', pageNumbers);
         let el = this.elementContainer(containerEl, elData);
         let img = document.createElement('img');
         img.setAttribute('class', 'jzd-image');
-        let src = elData.image;
+        let src = this.imageSrc(elData.image);
         if (src.indexOf('/') < 0) src = this.dataDirUrl + '/' + src;
         img.src = src;
         el.appendChild(img);
         containerEl.appendChild(el);
         return el;
+    }
+
+    imageSrc(elDataImage, srcType) {
+        if (!elDataImage) return 'EMPTY';
+        if (typeof elDataImage == 'string') return elDataImage;
+        if (Array.isArray(elDataImage)) return 'CANNOT HANDLE ARRAYS';
+        if (typeof elDataImage != 'object') return 'UNKNOWN elData.image TYPE';
+        let src = elDataImage[srcType] || elDataImage.web || elDataImage.original;
+        return src;
     }
 
     // homage to fitInto; adjusts postion and width/height to properly layout image
@@ -2155,7 +2164,8 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
                     let pnum = pageOrder[poffset];
                     console.log('>>> (%d,%d) poffset=%d pnum=%d', x, y, poffset, pnum);
                     if (pnum >= this.doc.document.pages.length) {
-                        console.info('skipping x=%d, y=%d, pnum=%d due to no source page', x, y, pnum);
+                        console.info('skipping poffset=%d, x=%d, y=%d, pnum=%d due to no source page', poffset, x, y, pnum);
+                        poffset++;
                         continue;
                     }
 
