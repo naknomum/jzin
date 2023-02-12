@@ -55,6 +55,7 @@ class jzinDesigner {
         this.feed = null;
         this.doc = null;
         this.imagesToCache = -1;
+        this.imageSizes = {};
         this.activeTemplate = null;
         this.activeElement = null;
         this.init();
@@ -249,6 +250,12 @@ class jzinDesigner {
         if (this.imagesToCache < 0) {
             let me = this;
             let srcs = [];
+            // the placeholder
+            srcs.push(jzinDesigner.templateFeedBase[0].image);
+            // coverImage
+            if (this.feed.meta.coverImage) srcs.push(this.imageSrc(this.feed.meta.coverImage));
+            // now the images from feed
+console.log('zzzzz %o', srcs);
             for (let i = 0 ; i < this.feed.feed.length ; i++) {
                 if (this.feed.feed[i].image) srcs.push(this.imageSrc(this.feed.feed[i].image));
             }
@@ -266,8 +273,7 @@ class jzinDesigner {
                 if (src.indexOf('/') < 0) src = this.dataDirUrl + '/' + src;
                 img.addEventListener('load', function(ev) {
                     console.info('image cache[%d]: %s %o (%o,%o)', me.imagesToCache, this.src, this.complete, this.naturalWidth, this.naturalHeight);
-                    me.feed.feed[i].imageWidth = this.naturalWidth;
-                    me.feed.feed[i].imageHeight = this.naturalHeight;
+                    me.imageSizes[srcs[i]] = [this.naturalWidth, this.naturalHeight];
                     me.imagesToCache--;
                     me.message(me.text('waiting for images') + ' [' + me.imagesToCache + ']');
                     me.cacheImages();  // will allow us to exit when done
@@ -2024,22 +2030,24 @@ console.log('pageNumbers = %o', pageNumbers);
 
     // homage to fitInto; adjusts postion and width/height to properly layout image
     fitImage(elData, feedData) {
-        if (!feedData.imageHeight || !feedData.imageWidth) return;
+        let iwh = this.imageSizes[this.imageSrc(elData.image)];
+console.log('zzzzz %o %o', iwh, elData.image);
+        if (!iwh || !iwh[0] || !iwh[1]) return;
 console.log('zzz fitImage el %o', JSON.stringify(elData));
 console.log('zzz fitImage feed %o', feedData);
         let xOffset = 0;
         let yOffset = 0;
-        let ws = elData.width / feedData.imageWidth;
-        let hs = elData.height / feedData.imageHeight;
+        let ws = elData.width / iwh[0];
+        let hs = elData.height / iwh[1];
         let scale = Math.min(ws, hs);
         if (!elData.fitType || (elData.fitType == 'inside')) {
-            xOffset = (elData.width - feedData.imageWidth * scale) / 2;
-            yOffset = (elData.height - feedData.imageHeight * scale) / 2;
+            xOffset = (elData.width - iwh[0] * scale) / 2;
+            yOffset = (elData.height - iwh[1] * scale) / 2;
         }
-console.log('zzzz img(%d,%d) el(%d,%d)', feedData.imageWidth, feedData.imageHeight, elData.width, elData.height);
+console.log('zzzz img(%d,%d) el(%d,%d)', iwh[0], iwh[1], elData.width, elData.height);
 console.log('zzzz img %o %o %o %o', scale, xOffset, yOffset, elData);
-        elData.width = feedData.imageWidth * scale;
-        elData.height = feedData.imageHeight * scale;
+        elData.width = iwh[0] * scale;
+        elData.height = iwh[1] * scale;
         elData.position[0] += xOffset;
         elData.position[1] += yOffset;
 console.log('zzzz elData is now %s', JSON.stringify(elData));
