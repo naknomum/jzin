@@ -940,21 +940,38 @@ console.log('zzzzz %o', srcs);
             ev.stopPropagation();
         });
         pwrapper.appendChild(b);
-        b = document.createElement('select');
-        b.style.display = 'inline-block';
-        for (let i = 0 ; i < (this.numDocPages() / 4 - 2) ; i++) {
-            let opt = document.createElement('option');
-            opt.value = i;
-            opt.innerHTML = (i ? i + ' ' + this.text('sheets/signature') : this.text('No signatures'));
-            b.appendChild(opt);
-        }
-        b.id = 'jzd-print-signature-size';
-        pwrapper.appendChild(b);
         this.uiEl.appendChild(pwrapper);
+    }
+
+    updatePrintSignatureUI() {
+        let id = 'jzd-print-signature-size';
+        let div = document.getElementById(id);
+        let sigMax = this.numDocPages() / 4 - 2;
+        if (sigMax > 1) {
+            if (!div) {
+                div = document.createElement('select');
+                div.style.display = 'inline-block';
+                div.id = id;
+                document.getElementsByClassName('jzd-print-wrapper')[0].appendChild(div);
+            } else {
+                div.innerHTML = '';
+            }
+            for (let i = 0 ; i < sigMax ; i++) {
+                let opt = document.createElement('option');
+                opt.value = i;
+                opt.innerHTML = (i ? i + ' ' + this.text('sheets/signature') : this.text('No signatures'));
+                div.appendChild(opt);
+            }
+
+        // we dont need pulldown, kill it if it exists
+        } else if (div) {
+            div.remove();
+        }
     }
 
     createDocFromTemplate() {
         this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
+        this.repaginate();
         // TODO do we copy template? reference template?  etc
         this.doc.meta._created = new Date();
         this.doc.meta.title = (this.feed.meta && this.feed.meta.title) || this.text('Untitled');
@@ -992,7 +1009,6 @@ console.log('zzzzz %o', srcs);
 
     newPageSize(pnum) {
         //FIXME what should size use?
-console.log('OUCH %o', pnum);
         return this.doc.document.pages[pnum || 0].size;
     }
 
@@ -1266,6 +1282,7 @@ console.log('OUCH %o', pnum);
         this.reIndex();
         this.rePageNumber();
         this.addPaddingPages();
+        this.updatePrintSignatureUI();
     }
 
     reIndex() {
@@ -1538,6 +1555,7 @@ console.log('pageNumbers = %o', pageNumbers);
 
     pageGo(pnum) {
         pnum = parseInt(pnum);
+        if (pnum >= this.numDocPages()) pnum = this.numDocPages() - 1;
         if (pnum == this.pageCurrent) return;
         this.pageCurrent = pnum;
         this.resetPageBackdrop();
@@ -2115,15 +2133,18 @@ console.log('zzzz elData is now %s', JSON.stringify(elData));
     }
 
     addPaddingPages(multipleOf) {
-        multipleOf = multipleOf || 8;
-        let paddingNeeded = Math.ceil(this.numDocPages() / multipleOf) * multipleOf - this.numDocPages();
+        //multipleOf = multipleOf || 8;
+        //let paddingNeeded = Math.ceil(this.numDocPages() / multipleOf) * multipleOf - this.numDocPages();
+        let paddingNeeded = this.numPrintedPages() - this.numDocPages();
         let offset = this.offsetIndex();
-        if (offset >= this.numDocPages()) offset = this.numDocPages() - 1;
+//console.log('xxxx offset=%o paddingNeeded=%o', offset, paddingNeeded);
+        if (offset > this.numDocPages()) offset = this.numDocPages() - 1;
+//console.log('xxxx offset=%o numPages=%o', offset, this.numDocPages());
         for (let i = 0 ; i < paddingNeeded ; i++) {
             this.doc.document.pages.splice(offset, 0, {
                 jzdPageType: 'padding',
                 jzdExcludeFromPagination: true,
-                size: this.newPageSize(offset),
+                size: this.newPageSize(),
                 elements: []
             });
         }
@@ -2141,6 +2162,13 @@ console.log('zzzz elData is now %s', JSON.stringify(elData));
         }
         if (removed) this.docAltered();
         return removed;
+    }
+
+    numPrintedPages() {
+        let numAcross = this.doc.document.layout.across || 2;
+        let numDown = this.doc.document.layout.down || 1;
+        let ordData = bookPageOrder(this.numDocPages(), numAcross, numDown);
+        return ordData.numPagesActual;
     }
 
     pagesByType(type, prefix) {
@@ -2233,7 +2261,8 @@ console.log('>>>>>> pageOrder=%o', pageOrder);
     }
 
     print() {
-        this.doc.document.layout.signatureSheets = parseInt(document.getElementById('jzd-print-signature-size').value);
+        let ssEl = document.getElementById('jzd-print-signature-size');
+        this.doc.document.layout.signatureSheets = parseInt((ssEl && ssEl.value) || 0);
         this.doc.document.layout.safeMargin = 14;  //who has a full-bleed printer???
         this.createPdfDoc();
         let me = this;
