@@ -944,6 +944,7 @@ console.log('zzzzz %o', srcs);
     }
 
     updatePrintSignatureUI() {
+        if (this.inTemplateMode()) return;
         let id = 'jzd-print-signature-size';
         let div = document.getElementById(id);
         let sigMax = this.numDocPages() / 4 - 2;
@@ -976,7 +977,7 @@ console.log('zzzzz %o', srcs);
         this.doc.meta._created = new Date();
         this.doc.meta.title = (this.feed.meta && this.feed.meta.title) || this.text('Untitled');
         this.doc.meta.projectId = this.projId;
-        this.doc.meta.guidHash = (this.feed.meta && this.feed.meta.guidHash) || '000000';  //TODO could compute in js
+        this.doc.meta.guidHash = (this.feed.meta && this.feed.meta.guidHash) || this.computeGuidHash();
         this.docAltered();  // will save
         this.previewPages(this.doc);
         this.activeTemplate = null;
@@ -987,7 +988,13 @@ console.log('zzzzz %o', srcs);
     }
 
 
+    computeGuidHash() {
+        // this.projId  FIXME
+        return null;
+    }
+
     url() {
+        if (!this.doc.meta.guidHash) return;
         return 'jzin.org/g/' + this.doc.meta.guidHash;
     }
 
@@ -1067,38 +1074,6 @@ console.log('zzzzz %o', srcs);
                     width: size[2] - size[0],
                     text: this.doc.meta.title || this.text('Cover Page')
                 }]
-            },
-            {
-                size: size,
-                jzdExcludeFromPagination: true,
-                jzdPageType: 'cover-front-inside',
-                elements: [
-                    {
-                        elementType: 'image',
-                        position: [20, y + fontSize],
-                        height: 60,
-                        width: 60,
-                        image: 'qr.png'
-                    },
-                    {
-                        elementType: 'text',
-                        fontSize: fontSize * 0.3,
-                        font: this.defaultFont(),
-                        position: [25, y + fontSize * 0.4],
-                        height: fontSize * 0.4,
-                        width: (size[3] - size[1]) / 2,
-                        text: this.url()
-                    },
-                    {
-                        elementType: 'text',
-                        fontSize: fontSize * 0.25,
-                        font: this.defaultFont(),
-                        position: [25, y],
-                        height: fontSize * 0.35,
-                        width: (size[3] - size[1]) / 2,
-                        text: this.text('Created with: ') + 'jzin.org'
-                    }
-                ]
             }
         );
         if (this.feed.meta.coverImage) {
@@ -1114,6 +1089,44 @@ console.log('zzzzz %o', srcs);
             };
             this.doc.document.pages[0].elements.push(covImage);
         }
+
+        let insideCoverPage = {
+            size: size,
+            jzdExcludeFromPagination: true,
+            jzdPageType: 'cover-front-inside',
+            elements: [
+                {
+                    elementType: 'image',
+                    position: [20, y + fontSize],
+                    height: 60,
+                    width: 60,
+                    image: 'qr.png'
+                },
+                {
+                    elementType: 'text',
+                    fontSize: fontSize * 0.25,
+                    font: this.defaultFont(),
+                    position: [25, y],
+                    height: fontSize * 0.35,
+                    width: (size[3] - size[1]) / 2,
+                    text: this.text('Created with: ') + 'jzin.org'
+                }
+            ]
+        };
+        let url = this.url();
+        if (url) insideCoverPage.elements.splice(1, 0,
+            {
+                elementType: 'text',
+                fontSize: fontSize * 0.3,
+                font: this.defaultFont(),
+                position: [25, y + fontSize * 0.4],
+                height: fontSize * 0.4,
+                width: (size[3] - size[1]) / 2,
+                text: url
+            }
+        );
+        this.doc.document.pages.splice(1, 0, insideCoverPage);
+
         this.doc.document.pages.splice(this.doc.document.pages.length, 0,
             {
                 size: size,
