@@ -941,6 +941,7 @@ console.log('zzzzz %o', srcs);
         });
         pwrapper.appendChild(b);
         this.uiEl.appendChild(pwrapper);
+        this.updatePrintSignatureUI();
     }
 
     updatePrintSignatureUI() {
