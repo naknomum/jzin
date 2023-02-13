@@ -1033,6 +1033,8 @@ console.log('OUCH %o', pnum);
         let size = this.newPageSize();
         let fontSize = this.generalScaleFontSize(60);
         let y = 40;
+        let textY = (size[3] - size[1]) * 0.6;
+        if (this.feed.meta.coverImage) textY = size[3] - size[1] - fontSize * 3;
         this.doc.document.pages.splice(0, 0,
             {
                 size: size,
@@ -1044,7 +1046,7 @@ console.log('OUCH %o', pnum);
                     font: this.defaultFont(),
                     options: {align: 'center'},
                     textType: 'paragraph',
-                    position: [0, (size[3] - size[1]) * 0.6],
+                    position: [0, textY],
                     height: fontSize * 2.5,
                     width: size[2] - size[0],
                     text: this.doc.meta.title || this.text('Cover Page')
@@ -1083,6 +1085,19 @@ console.log('OUCH %o', pnum);
                 ]
             }
         );
+        if (this.feed.meta.coverImage) {
+            let cimg = this.imageSrc(this.feed.meta.coverImage);
+            let iw = size[2] - size[0] - 30;
+            let ih = iw / this.imageSizes[cimg][0] * this.imageSizes[cimg][1];
+            let covImage = {
+                        elementType: 'image',
+                        position: [15, textY - ih - 10],
+                        height: ih,
+                        width: iw,
+                        image: this.feed.meta.coverImage
+            };
+            this.doc.document.pages[0].elements.push(covImage);
+        }
         this.doc.document.pages.splice(this.doc.document.pages.length, 0,
             {
                 size: size,
