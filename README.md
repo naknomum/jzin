@@ -49,7 +49,7 @@ jzin makes use of (and, in fact, spawned) [BookPageOrder](https://github.com/nak
   * Better image options (fitInto etc)
 * ~~Add/Remove elements on page~~
   * ~~Expand undo buffer~~
-* UTF-8 not working on feeds (e.g. RSS)
+* ~~UTF-8 not working on feeds (e.g. RSS)~~
 * ~~Book signatures~~
 * Bug squashing
   * ~~Remove delete from template-edit mode (image/text)~~
