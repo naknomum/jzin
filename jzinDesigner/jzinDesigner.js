@@ -949,6 +949,8 @@ console.log('zzzzz %o', srcs);
 
     updatePrintSignatureUI() {
         if (this.inTemplateMode()) return;
+        let wrapper = document.getElementsByClassName('jzd-print-wrapper')[0];
+        if (!wrapper) return;
         let id = 'jzd-print-signature-size';
         let div = document.getElementById(id);
         let sigMax = this.numDocPages() / 4 - 2;
@@ -957,7 +959,7 @@ console.log('zzzzz %o', srcs);
                 div = document.createElement('select');
                 div.style.display = 'inline-block';
                 div.id = id;
-                document.getElementsByClassName('jzd-print-wrapper')[0].appendChild(div);
+                wrapper.appendChild(div);
             } else {
                 div.innerHTML = '';
             }
