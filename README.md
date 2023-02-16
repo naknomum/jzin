@@ -53,7 +53,7 @@ jzin makes use of (and, in fact, spawned) [BookPageOrder](https://github.com/nak
 * ~~Book signatures~~
 * Bug squashing
   * ~~Remove delete from template-edit mode (image/text)~~
-  * Fonts not affective on startup
+  * ~~Fonts not affective on startup~~
   * 2-page templates not showing page-prev-next on startup
   * Move page should be disabled for special pages (index, TOC)
   * Delete pages should delete "companions" (e.g. back of chapter page)

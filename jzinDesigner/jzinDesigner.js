@@ -485,6 +485,9 @@ console.log('zzzzz %o', srcs);
     setUIText(el, elData, pgNum, elNum) {
         this.uiEl.innerHTML = '';
         let fsel = jzinDesigner.fontSelect.cloneNode(true);
+        for (let opt of fsel.options) {
+            if (opt.value == elData.font) opt.selected = true;
+        }
         let me = this;
         let scale = parseFloat(el.parentElement.dataset.scale);
 
