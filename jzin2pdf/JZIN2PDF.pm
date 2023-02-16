@@ -134,6 +134,7 @@ sub process_element_image {
     warn "IMAGE ELEMENT: " . Dumper($el) if $DEBUG;
     my $image_key = $el->{image};
     $image_key = $image_key->{'print'} || $image_key->{'web'} if (ref $el->{image} eq 'HASH');
+    return unless $image_key;
     warn ">>>>>>>>>>>>>>>>>>>>>> using image_key=$image_key" if $DEBUG;
     die "could not find MAP_IMAGES{$image_key}" unless $MAP_IMAGES{$image_key} && $MAP_IMAGES{$image_key}->{image};
 
