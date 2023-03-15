@@ -54,6 +54,7 @@ jzin makes use of (and, in fact, spawned) [BookPageOrder](https://github.com/nak
 * Bug squashing
   * ~~Remove delete from template-edit mode (image/text)~~
   * ~~Fonts not affective on startup~~
+  * Index not wrapping sometimes
   * 2-page templates not showing page-prev-next on startup
   * Disallow editing of index (kinda?)
   * Move page should be disabled for special pages (index, TOC)
