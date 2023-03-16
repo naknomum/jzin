@@ -82,4 +82,5 @@ jzin makes use of (and, in fact, spawned) [BookPageOrder](https://github.com/nak
 * Rotation
 * Maybe improvements to have real undo? (all operations)
 * Handle multi-image posts (e.g. Instagram carousels)
+* Port jzin-to-pdf to JS with [pdf-lib](https://pdf-lib.js.org/)??
 
