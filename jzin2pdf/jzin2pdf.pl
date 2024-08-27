@@ -7,7 +7,7 @@ use JZIN2PDF;
 use JSON;
 use Data::Dumper;
 
-my $jzin = from_json(join('', <STDIN>));
+my $jzin = from_json(join('', <STDIN>), {utf8=>1});
 my $pdf = &JZIN2PDF::process_jzin($jzin);
 
 $pdf->save('/dev/stdout');
