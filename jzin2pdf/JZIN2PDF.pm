@@ -89,6 +89,8 @@ sub process_element {
         &process_element_text($page, $el);
     } elsif ($el->{elementType} eq 'image') {
         &process_element_image($page, $el);
+    } elsif ($el->{elementType} eq 'pdf') {
+        &process_element_pdf($page, $el);
     }
 }
 
@@ -161,6 +163,27 @@ sub process_element_image {
     );
 }
 
+# experimental / hacky
+sub process_element_pdf {
+    my ($page, $el) = @_;
+    warn "PDF ELEMENT: " . Dumper($el) if $DEBUG;
+    my $src_path = $el->{src};
+    my $source = PDF::API2->open($src_path);
+    if (!$source) {
+        warn "could not open element_pdf src_path=$src_path: $!";
+        return;
+    }
+    my $page_num = $el->{pageNumber} || 1;
+    my $scale = $el->{scale} || 1;
+    my $xobject = $pdf->embed_page($source, $page_num);
+
+    $page->object(
+        $xobject,
+        $el->{position}->[0] + 0,
+        $el->{position}->[1] + 0,
+        $scale
+    );
+}
 
 sub pdf_timestamp {
     my @t = (reverse gmtime())[3..8];
