@@ -6,10 +6,11 @@ use JSON;
 use Data::Dumper;
 use utf8;
 
-my $VERSION = '0.0.3';
+my $VERSION = '0.0.5';
 
 my %MAP_FONTS;
 my %MAP_IMAGES;
+my %MAP_STYLES;
 my $pdf;
 my $DEFAULT_FONT;
 my $DEBUG = 1;
@@ -67,6 +68,9 @@ sub process_maps {
         };
         warn "got image-read error $@" if $@;
     }
+
+    # styles is easy
+    %MAP_STYLES = %{$maps->{styles}};
 }
 
 
@@ -98,14 +102,26 @@ sub process_element {
 sub process_element_text {
     my ($page, $el) = @_;
     my $text = $page->text();
-    my $font = $DEFAULT_FONT;
-    my $fontSize = $el->{fontSize} || 12;
+    # attempts to get this style, falls back to default, falls back to very basic default
+    my $style = $MAP_STYLES{$el->{style}} || {};
+    my $defaultStyle = $MAP_STYLES{_DEFAULT_} || {
+        fontSize => 12,
+        color => 'black',
+    };
+    # if these are set explicitly, they win over $style
+    my $fontSize = $el->{fontSize} || $style->{fontSize} || $defaultStyle->{fontSize} || 12;
     my %options = %{$el->{options}} if $el->{options};
-    warn "could not find MAP_FONTS{$el->{font}} (using DEFAULT)" if ($el->{font} && !$MAP_FONTS{$el->{font}});
+    my $font = $el->{font} || $style->{font} || $defaultStyle->{font};
+    if (!$MAP_FONTS{$font}) {
+        warn "could not find MAP_FONTS{$font}} (using DEFAULT)";
+        $font = $DEFAULT_FONT;
+    } else {
+        #$font = $MAP_FONTS{$el->{font}}->{font} if ($el->{font} && $MAP_FONTS{$el->{font}});
+        $font = $MAP_FONTS{$font}->{font};
+    }
     warn "TEXT ELEMENT: " . Dumper($el) . "OPTIONS: " . Dumper(\%options) if $DEBUG;
-    $font = $MAP_FONTS{$el->{font}}->{font} if ($el->{font} && $MAP_FONTS{$el->{font}});
     $text->font($font, $fontSize);
-    $text->fill_color($el->{color} || 'black');
+    $text->fill_color($el->{color} || $style->{color});
 
     my $x = $el->{position}->[0];
     my $y = $el->{position}->[1];
@@ -124,6 +140,8 @@ sub process_element_text {
         $h += 200 if $el->{overflow};
         my $over = $text->paragraph($el->{text}, $w, $h + $fontSize * 2, %options);
         warn "+++ overflowed text=($over) on " . Dumper($el) if $over;
+    } elsif ($el->{textType} eq 'multi') {
+        warn "<<< multi-type not yet supported >>>\n";
     } else {
         $text->position($x, $y);
         $text->text($el->{text}, %options);
