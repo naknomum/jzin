@@ -31,7 +31,8 @@
 		},
 		"styles": {
 			"_DEFAULT_": {
-				"font": "main"
+				"font": "main",
+				"fontSize": 12
 			},
 			"big-red": {
 				"_comment": "anything not set here, inherits from default",
@@ -77,22 +78,26 @@
 					{
 						"elementType": "text",
 						"textType": "multi",
-						"position": [36, 160],
-						"text": [
-							{
-								"text": "Hello",
-								"color": "blue"
-							},
-							{
-								"text": " World!",
-								"color": "red",
-								"fontSize": 9
-							},
-							{
-								"text": " and this is the rest of the text for us to show in this paragraph",
-								"fontSize": 21
-							}
-						]
+						"position": [36, 660],
+						"width": 300,
+						"height": 400,
+						"textData": {
+							"textElements": [
+								{
+									"text": "Hello",
+									"color": "blue"
+								},
+								{
+									"text": " World!",
+									"color": "red",
+									"fontSize": 9
+								},
+								{
+									"text": " and this is the rest of the text for us to show in this paragraph",
+									"fontSize": 21
+								}
+							]
+						}
 					},
 
 					{

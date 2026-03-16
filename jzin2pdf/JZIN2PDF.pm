@@ -5,6 +5,7 @@ use PDF::API2;
 use JSON;
 use Data::Dumper;
 use utf8;
+use MultiParagraph;
 
 my $VERSION = '0.0.5';
 
@@ -134,14 +135,22 @@ sub process_element_text {
         $x += $w;
     }
 
-    if (($el->{textType} eq 'paragraph') && $el->{width} && $el->{height}) {
+    # needs w/h
+    if (($el->{textType} eq 'paragraph') && $w && $h) {
         $y += ($h - $fontSize);
         $text->position($x, $y);
         $h += 200 if $el->{overflow};
         my $over = $text->paragraph($el->{text}, $w, $h + $fontSize * 2, %options);
         warn "+++ overflowed text=($over) on " . Dumper($el) if $over;
-    } elsif ($el->{textType} eq 'multi') {
-        warn "<<< multi-type not yet supported >>>\n";
+
+    # also needs w/h
+    } elsif (($el->{textType} eq 'multi') && $w && $h && (ref($el->{textData}) eq 'HASH')) {
+        $text->position($x, $y);
+        $el->{textData}->{defaultStyle} = $defaultStyle unless $el->{textData}->{defaultStyle};
+        # TODO FIXME should make a generic way to populate/fix styles etc
+        $el->{textData}->{defaultStyle}->{font} = $MAP_FONTS{$el->{textData}->{defaultStyle}->{font}}->{font} || $DEFAULT_FONT;
+        my ($overflow, $rem_h) = $text->paragraph_multi($el->{textData}, $w, $h);
+
     } else {
         $text->position($x, $y);
         $text->text($el->{text}, %options);
