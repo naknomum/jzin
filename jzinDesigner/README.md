@@ -1,7 +1,7 @@
 # jzinDesigner
 
-A simple web tool for manipulating data "feeds" (images, text, etc.) into **jzin document** based on a chosen _template_.
-These [feeds](../generators/feed.md) are a source-agnostic way to represent simple arrays of content-data.
+A simple web tool for manipulating data feeds (in the [JSON Feed standard format](https://jsonfeed.org/): images, text, etc.)
+into a **jzin document** based on a chosen _template_.
 
 ## Template Chooser
 

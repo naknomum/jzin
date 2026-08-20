@@ -1,9 +1,9 @@
 # Generators
 
-Utilities to take various types of input and generate a `feed.json` suitable to use for jzin generation.
+Utilities to take various types of input and generate a [JSON Feed](https://www.jsonfeed.org/) from them.
+The **JSON Feed** format is not explicitly a requirement to jzin functionality, but rather serves as standardized
+starting point for conversion _into_ jzin by the [jzinDesigner](../jzinDesigner) tool set.
 
-* [More details](feed.md) on feed json.
+This workflow can illustrated as:
 
-## RSS
-
-* TODO: modify back-end script for converting RSS to be a standalone utility.
+- **JSON Feed** (json) + **jzinDesigner template** (json) → **jzin** (json) → **pdf output**
