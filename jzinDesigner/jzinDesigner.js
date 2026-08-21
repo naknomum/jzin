@@ -257,7 +257,8 @@ class jzinDesigner {
             // now the images from feed
 console.log('zzzzz %o', srcs);
             for (let i = 0 ; i < this.feed.items.length ; i++) {
-                if (this.feed.items[i].image) srcs.push(this.imageSrc(this.feed.items[i].image));
+                let itemImage = this.findItemImage(this.feed.items[i]);
+                if (itemImage) srcs.push(this.imageSrc(itemImage));
             }
             this.imagesToCache = srcs.length;
             for (let i = 0 ; i < srcs.length ; i++) {
@@ -281,6 +282,24 @@ console.log('zzzzz %o', srcs);
                 img.src = src;
             }
         }
+    }
+
+    findItemImage(item) {
+        if (item.image) return item.image;
+        if (item.content_html) {
+            const regex = /<img .*src="([^"]+)"/i;
+            const matches = item.content_html.match(regex);
+            if (matches) return matches[1];
+        }
+        return null;
+    }
+
+    findItemContent(item) {
+        if (item.content_html) {
+            // TODO turn this into multiparagraph? etc.
+            return item.content_html.replace(/<[^>]+>/g, '');
+        }
+        return item.content_text;
     }
 
     // TODO: resolve how to fetch remove vs local
@@ -981,7 +1000,7 @@ console.log('zzzzz %o', srcs);
         this.repaginate();
         // TODO do we copy template? reference template?  etc
         this.doc.meta._created = new Date();
-        this.doc.meta.title = (this.feed.meta && this.feed.meta.title) || this.text('Untitled');
+        this.doc.meta.title = this.feed.title || this.text('Untitled');
         this.doc.meta.projectId = this.projId;
         this.doc.meta.guidHash = (this.feed.meta && this.feed.meta.guidHash) || this.computeGuidHash();
         this.docAltered();  // will save
@@ -1082,8 +1101,8 @@ console.log('zzzzz %o', srcs);
                 }]
             }
         );
-        if (this.feed.meta.coverImage) {
-            let cimg = this.imageSrc(this.feed.meta.coverImage);
+        if (this.feed.icon) {
+            let cimg = this.imageSrc(this.feed.icon);
             let iw = size[2] - size[0] - 30;
             let ih = iw / this.imageSizes[cimg][0] * this.imageSizes[cimg][1];
             let covImage = {
@@ -1091,7 +1110,7 @@ console.log('zzzzz %o', srcs);
                         position: [15, textY - ih - 10],
                         height: ih,
                         width: iw,
-                        image: this.feed.meta.coverImage
+                        image: this.feed.icon
             };
             this.doc.document.pages[0].elements.push(covImage);
         }
@@ -1662,6 +1681,7 @@ console.log('pageNumbers = %o', pageNumbers);
                 newPage.jzdHashTags = [];
                 for (let i = 0 ; i < newPage.elements.length ; i++) {
                     let field = newPage.elements[i].field;
+console.log('zzzzz field=%o', field);
                     if (field == 'title') newPage.elements[i].jzdRefIndex = true;  //auto-index titles
                     let elType = newPage.elements[i]['elementType'];
                     let itemOffset = newPage.elements[i].itemOffset || 0;
@@ -1674,7 +1694,9 @@ console.log('pageNumbers = %o', pageNumbers);
                         continue;
                     }
                     if (i == 0) newPage.jzdHashTags = newPage.jzdHashTags.concat(feed[offset].hashtags || []);
+                    newPage.elements[i].jzdField = field;
                     newPage.elements[i][elType] = feed[offset][field] || null;
+                    if (field == 'caption') newPage.elements[i][elType] = this.findItemContent(feed[offset]);
                     if (elType == 'image') this.fitImage(newPage.elements[i], feed[offset]);
                     console.log('       PAGE[%d] els: %o ???', doc.document.pages.length, newPage.elements);
                 }
