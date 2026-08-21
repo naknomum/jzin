@@ -253,11 +253,11 @@ class jzinDesigner {
             // the placeholder
             srcs.push(jzinDesigner.templateFeedBase[0].image);
             // coverImage
-            if (this.feed.meta.coverImage) srcs.push(this.imageSrc(this.feed.meta.coverImage));
+            if (this.feed.icon) srcs.push(this.imageSrc(this.feed.icon));
             // now the images from feed
 console.log('zzzzz %o', srcs);
-            for (let i = 0 ; i < this.feed.feed.length ; i++) {
-                if (this.feed.feed[i].image) srcs.push(this.imageSrc(this.feed.feed[i].image));
+            for (let i = 0 ; i < this.feed.items.length ; i++) {
+                if (this.feed.items[i].image) srcs.push(this.imageSrc(this.feed.items[i].image));
             }
             this.imagesToCache = srcs.length;
             for (let i = 0 ; i < srcs.length ; i++) {
@@ -977,7 +977,7 @@ console.log('zzzzz %o', srcs);
     }
 
     createDocFromTemplate() {
-        this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
+        this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.items);
         this.repaginate();
         // TODO do we copy template? reference template?  etc
         this.doc.meta._created = new Date();
@@ -1599,7 +1599,7 @@ console.log('pageNumbers = %o', pageNumbers);
         this.setPageDisplay(0);
         this.displayPage(0, this.pageBackdrop, this.doc, true);
 
-        let previewDoc = this.docFromTemplate(jzinDesigner.templates[tnum], this.feed.feed);
+        let previewDoc = this.docFromTemplate(jzinDesigner.templates[tnum], this.feed.items);
         this.previewPages(previewDoc);
         let els = this.uiEl.getElementsByClassName('jzd-template-pager');
         if (els && els[0]) {
@@ -1799,7 +1799,7 @@ console.log('pageNumbers = %o', pageNumbers);
         console.info('element changed! %d,%d %o', ident[0], ident[1], el);
         if (this.inTemplateMode()) {
             this.doc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], jzinDesigner.templateFeed);
-            let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.feed);
+            let previewDoc = this.docFromTemplate(jzinDesigner.templates[this.activeTemplate], this.feed.items);
             this.previewPages(previewDoc);
             this.templateAltered(this.activeTemplate);
         } else {
